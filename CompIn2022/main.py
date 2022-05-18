@@ -11,18 +11,22 @@ def calibrarGarra():
     return
 
 def Segue_linha():
-    e = coloresquerdo.value()
-    d = colordireito.value()
-    if e > 40 and d <= 30: 
-        tank_drive.on(SpeedPercent(-25),SpeedPercent(45))
-    elif e <= 20 and d > 50:
-        tank_drive.on(SpeedPercent(45),SpeedPercent(-25))
-    elif e > 40 and d > 50:
+    media_direita_linha = sum(lista_ultimasLeiturasDireita[-num_amostras_segue:])/num_amostras_segue
+    media_esquerda_linha = sum(lista_ultimasLeiturasEsquerda[-num_amostras_segue:])/num_amostras_segue
+    if media_esquerda_linha > 65 and media_direita_linha <= 90: 
+        tank_drive.on(SpeedPercent(-18),SpeedPercent(33))
+    elif media_esquerda_linha <= 65 and media_direita_linha > 90:
+        tank_drive.on(SpeedPercent(33),SpeedPercent(-18))
+    elif media_esquerda_linha > 65 and media_direita_linha > 90:
         tank_drive.on(SpeedPercent(30), SpeedPercent(30))
+    elif media_esquerda2 < 15:
+        tank_drive.on(SpeedPercent(45),SpeedPercent(-25))
+    elif media_direita2 < 15:
+        tank_drive.on(SpeedPercent(-25),SpeedPercent(45))
     #elif 55>e>30 and 55>d>30:
         #tank_drive.on(SpeedPercent(0), SpeedPercent(0))
     else:
-        tank_drive.on(SpeedPercent(-10), SpeedPercent(10))
+        tank_drive.on(SpeedPercent(5), SpeedPercent(5))   #-10 e 10
     #print("Esquerda", e ,"Direita", d)
 
 def Segue_linha2():
@@ -59,38 +63,48 @@ def checa_verde():
 
 
 def Obstaculo():
-    e = coloresquerdo.value()
+    #-----------------------------------------------
+    distancia = dist.value()
+    distanciaesq = dist_esquerda.value()
+    time.sleep(1)
+    while(distanciaesq>150):
+        distancia = dist.value()
+        distanciaesq = dist_esquerda.value()
+        tank_drive.on(SpeedPercent(-25), SpeedPercent(25))
+    #-----------------------------------------------
+    tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+    time.sleep(1)
+    while(distanciaesq<240):
+        distancia = dist.value()
+        distanciaesq = dist_esquerda.value()
+        tank_drive.on(SpeedPercent(25), SpeedPercent(25))
+    tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+    time.sleep(1)
+    tank_drive.on_for_seconds(SpeedPercent(25), SpeedPercent(25),1)
+    tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+    time.sleep(1)
+   #-------------------------------------------------------
+    tank_drive.on_for_seconds(SpeedPercent(25), SpeedPercent(-25),0.9)
+    time.sleep(1)
+    while(distanciaesq>100):
+        distancia = dist.value()
+        distanciaesq = dist_esquerda.value()
+        tank_drive.on(SpeedPercent(25), SpeedPercent(25))
+    tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+    time.sleep(1)
+    while(distanciaesq<100):
+        distancia = dist.value()
+        distanciaesq = dist_esquerda.value()
+        tank_drive.on(SpeedPercent(25), SpeedPercent(25))
+    tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+    time.sleep(1)
+    tank_drive.on_for_seconds(SpeedPercent(25), SpeedPercent(-25),0.6)
+    time.sleep(1)
     d = colordireito.value()
-    #-----------------------------------------------
-    tank_drive.on(SpeedPercent(-25), SpeedPercent(25))
-    time.sleep(0.7)
-    #-----------------------------------------------
-    tempo = time.time() + 1.5
-    while e > 40 and d > 40 and tempo > time.time():
-        e = coloresquerdo.value()
-        d = colordireito.value()
-        tank_drive.on(SpeedPercent(25), SpeedPercent(25))
-    if e < 40 or d < 40:
-        return
-    #-----------------------------------------------
-    tank_drive.on(SpeedPercent(25), SpeedPercent(-25))
-    time.sleep(0.75)
-    #-----------------------------------------------
-    tempo = time.time() + 3
-    while e > 40 and d > 40 and tempo > time.time():
-        e = coloresquerdo.value()
-        d = colordireito.value()
-        tank_drive.on(SpeedPercent(25), SpeedPercent(25))
-    if e < 40 or d < 40:
-        return
-    #-----------------------------------------------
-    tank_drive.on(SpeedPercent(25), SpeedPercent(-25))
-    time.sleep(0.75)
-    #-----------------------------------------------
-    while e > 40 and d > 40:
-        e = coloresquerdo.value()
-        d = colordireito.value()
-        tank_drive.on(SpeedPercent(25), SpeedPercent(25))
+    while(d > 90):
+        d = colordireito.value()  
+        tank_drive.on(SpeedPercent(25), SpeedPercent(25))    
+
 
 
 
@@ -99,12 +113,15 @@ dist = UltrasonicSensor(INPUT_2)
 coloresquerdo = ColorSensor(INPUT_3)
 colordireito = ColorSensor(INPUT_4)
 MotorBraço = Motor(OUTPUT_A)
-tank_drive = MoveTank(OUTPUT_C, OUTPUT_B)
-tempo_braço = 1
+tank_drive = MoveTank(OUTPUT_C, OUTPUT_B)  #C - Direita    B - Esquerda
+dist_esquerda = UltrasonicSensor(INPUT_1)
+tempo_braço = 0.8
 tempo_garra = 0.35
 tempo_adicional = 0
 num_amostras = 100
-num_amostras_menor = 2
+num_amostras_seguemaior = 20
+num_amostras_menor = 1
+num_amostras_segue = 1
 lista_ultimasLeiturasEsquerda = []
 lista_ultimasLeiturasDireita = []
 
@@ -128,8 +145,8 @@ PosicaoBraçoLevantado = MotorBraço.position
 MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraFechada) # Fechar a Garra 
 
 while True:
-    e = coloresquerdo.value()  #Valores Lidos :Branco 73-77, Preto 6-8
-    d = colordireito.value()   #Valores Lidos :Branco 100, Preto 11, Verde 6
+    e = coloresquerdo.value()  #Valores Lidos :Branco 73-77, Preto 6-8, Verde 4
+    d = colordireito.value()   #Valores Lidos :Branco 100, Preto 11, Verde 6-7
     if len(lista_ultimasLeiturasDireita) < 100:
         lista_ultimasLeiturasEsquerda.append(e)
         lista_ultimasLeiturasDireita.append(d)
@@ -140,20 +157,33 @@ while True:
         lista_ultimasLeiturasDireita.append(d)
 
     distancia = dist.value()
+    distanciaesq = dist_esquerda.value()
     media_direita = sum(lista_ultimasLeiturasDireita[-num_amostras_menor:])/num_amostras_menor
     media_esquerda = sum(lista_ultimasLeiturasEsquerda[-num_amostras_menor:])/num_amostras_menor
+    media_direita2 = sum(lista_ultimasLeiturasDireita[-num_amostras_seguemaior:])/num_amostras_seguemaior
+    media_esquerda2 = sum(lista_ultimasLeiturasEsquerda[-num_amostras_seguemaior:])/num_amostras_seguemaior
     print(media_esquerda)
     print(media_direita)
     print("Esquerda: ", e, "Direita: ", d, "Distancia: ", distancia)
+    print("Dist 2  = ", distanciaesq)
 
-    if media_direita <= 10.1 and (len(lista_ultimasLeiturasDireita) >= num_amostras_menor):
+    if media_direita <= 0.9 and (len(lista_ultimasLeiturasDireita) >= num_amostras_menor): 
         tank_drive.on(SpeedPercent(0), SpeedPercent(0))
-    elif  8.5 <= media_esquerda <= 9.5 and (len(lista_ultimasLeiturasEsquerda) >= num_amostras_menor):
+        # if sum(lista_ultimasLeiturasDireita)/num_amostras < 35:
+        #     tank_drive.on_for_seconds(SpeedPercent(30), SpeedPercent(30),2) #Se antes do verde foi visto preto
+        # else:
+        #      tank_drive.on_for_seconds(SpeedPercent(45), SpeedPercent(-25),3.75)  # Se antes do verde foi visto branco (Virar para a direita)
+
+    elif  media_esquerda <= 0.5 and (len(lista_ultimasLeiturasEsquerda) >= num_amostras_menor):
         tank_drive.on(SpeedPercent(0), SpeedPercent(0))
     else:
         Segue_linha()
-    # if distancia <62 : 
-    #     tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+
+
+    
+    if distancia <135 :   #135-       esq160  --------- reto esq1000 - reto
+        tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+        Obstaculo()
     #     pegar_objeto_posicao()
 
     #if checa_verde:
@@ -164,7 +194,7 @@ while True:
             
     #     else:
     #         return
-    #Segue_linha()
+    #Segue_linha2()
 
 
 
