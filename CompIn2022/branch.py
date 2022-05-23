@@ -14,41 +14,20 @@ from time import sleep
 
 # Funções ///////////////////////////////////////////////////////////////////////////////////////////////////#
 def Segue_linha():
-    BrancoEq = 53
-    PretoEq = 15
-    BrancoDr = 70
-    PretoDr = 15
     media_direita_linha = sum(lista_ultimasLeiturasDireita[-num_amostras_segue:])/num_amostras_segue
     media_esquerda_linha = sum(lista_ultimasLeiturasEsquerda[-num_amostras_segue:])/num_amostras_segue
-    if media_esquerda_linha > BrancoEq and media_direita_linha <= BrancoDr:   # Branco na esquerda e Preto na direita
-        tank_drive.on(SpeedPercent(-18),SpeedPercent(33))                     # Virar pra Direita
-    elif media_esquerda_linha <= BrancoEq and media_direita_linha > BrancoDr: # Preto na esquerda e Branco na direita
-        tank_drive.on(SpeedPercent(33),SpeedPercent(-18))                     # Virar pra Esquerda
-    elif media_esquerda_linha > BrancoEq and media_direita_linha > BrancoDr:  # Branco na esquerda e na Direita
-        tank_drive.on(SpeedPercent(20), SpeedPercent(20))                     # Seguir Reto
-    elif media_esquerda_linha < BrancoEq and media_direita_linha < BrancoDr:  # Preto em ambos
-        if media_esquerda2 < PretoEq and media_direita2 > PretoDr:            # Preto na esquerda antes
-            tank_drive.on(SpeedPercent(45),SpeedPercent(-25))                 # Virar para Esquerda
-        elif media_direita2 < PretoDr and media_esquerda2 > PretoEq:          # Preto na direita antes
-            tank_drive.on(SpeedPercent(-25),SpeedPercent(45))                 # Virar pra Direita
-        else:                                                                 # Branco antes em ambos
-            tank_drive.on(SpeedPercent(5), SpeedPercent(5))                   # Andar reto
-
-def viu_verde():
-    media_direita_verde = sum(lista_ultimasLeiturasDireita[-num_amostras_verde:])/num_amostras_verde
-    media_esquerda_verde = sum(lista_ultimasLeiturasEsquerda[-num_amostras_verde:])/num_amostras_verde
-    tank_drive.on(SpeedPercent(0), SpeedPercent(0))
-    if media_direita <= 8:
-        if media_direita_verde < 60 and (len(lista_ultimasLeiturasDireita) >= num_amostras_menor):
-            tank_drive.on_for_seconds(SpeedPercent(40), SpeedPercent(50),1) #Se antes do verde foi visto preto
-        else:
-            tank_drive.on_for_seconds(SpeedPercent(5), SpeedPercent(35),1.4)  # Se antes do verde foi visto branco (Virar para a direita)
-    elif media_esquerda <= 4.5:
-        if media_esquerda_verde < 45 and (len(lista_ultimasLeiturasEsquerda) >= num_amostras_menor):
-            tank_drive.on_for_seconds(SpeedPercent(50), SpeedPercent(40),1) #Se antes do verde foi visto preto
-        else:
-            tank_drive.on_for_seconds(SpeedPercent(35), SpeedPercent(5),1.4)  # Se antes do verde foi visto branco (Virar para a esquerda)
-
+    if media_esquerda_linha > 53 and media_direita_linha <= 70:   #Branco na esquerda e Preto na direita
+        tank_drive.on(SpeedPercent(-18),SpeedPercent(33))         #Virar pra Direita
+    elif media_esquerda_linha <= 53 and media_direita_linha > 70: #Preto na esquerda e Branco na direita
+        tank_drive.on(SpeedPercent(33),SpeedPercent(-18))         #Virar pra Esquerda
+    elif media_esquerda_linha > 53 and media_direita_linha > 70:  #Branco na esquerda e na Direita
+        tank_drive.on(SpeedPercent(20), SpeedPercent(20))         #Seguir Reto
+    elif media_esquerda2 < 15 and media_direita2 > 15:            #Preto nas duas com preto na esquerda antes
+        tank_drive.on(SpeedPercent(45),SpeedPercent(-25))         #Virar para Esquerda
+    elif media_direita2 < 15 and media_esquerda2 > 15:            #Preto nas duas com preto na direita antes
+        tank_drive.on(SpeedPercent(-25),SpeedPercent(45))         #Virar pra Direita
+    else:                                                         #Preto em ambos com branco antes em ambos
+        tank_drive.on(SpeedPercent(5), SpeedPercent(5))           #Andar reto
 
 def pegar_objeto_posicao():
     MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraAberta) # Abrir a Garra 
@@ -126,7 +105,6 @@ num_amostras = 100
 num_amostras_seguemaior = 25
 num_amostras_menor = 10
 num_amostras_segue = 1
-num_amostras_verde = 30
 
 # Listas ----------------------------------------------------------------
 lista_ultimasLeiturasEsquerda = []
@@ -135,13 +113,15 @@ lista_ultimasLeiturasDireita = []
 # Garra -----------------------------------------------------------------
 PosicaoGarraFechada = MotorGarra.position
 PosicaoBraçoAbaixado = MotorBraço.position
+PosicaoGarraAberta = MotorGarra.position
+PosicaoBraçoLevantado = MotorBraço.position
 # Preparação ------------------------------------------------------------
 # MotorBraço.on_for_seconds(SpeedPercent(-20), tempo_braço) # Subindo a Garra
-MotorGarra.on_for_seconds(SpeedPercent(15),tempo_garra) # Abrindo a Garra
+# MotorGarra.on_for_seconds(SpeedPercent(15),tempo_garra) # Abrindo a Garra
 # time.sleep(1)
 PosicaoGarraAberta = MotorGarra.position
 PosicaoBraçoLevantado = MotorBraço.position
-MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraFechada) # Fechar a Garra 
+# MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraFechada) # Fechar a Garra 
 #///////////////////////////////////////////////////////////////////////////////////////////////////////////#
 
 
@@ -173,12 +153,17 @@ while True:
 
     if e == 0 and d == 0 or False:
         tank_drive.on(SpeedPercent(0),SpeedPercent(0)) 
-    elif e <= 4 or d <= 8 :
-        time.sleep(1)
-        MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraAberta) # Abrir a Garra 
-        MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraFechada)
-        time.sleep(1)
-        viu_verde()
+    elif media_direita <= 8 and (len(lista_ultimasLeiturasDireita) >= num_amostras_menor): #Checa se vê verde do lado direito Valor <= 9
+        if sum(lista_ultimasLeiturasDireita)/num_amostras < 30 and sum(lista_ultimasLeiturasEsquerda)/num_amostras < 100:
+            tank_drive.on_for_seconds(SpeedPercent(40), SpeedPercent(50),1) #Se antes do verde foi visto preto
+        else:
+            tank_drive.on_for_seconds(SpeedPercent(5), SpeedPercent(35),1.4)  # Se antes do verde foi visto branco (Virar para a direita)
+
+    elif  media_esquerda <= 4.5 and (len(lista_ultimasLeiturasEsquerda) >= num_amostras_menor): #Checa se vê verde do lado esquerdo Valor <= 4
+        if sum(lista_ultimasLeiturasEsquerda)/num_amostras < 30 and sum(lista_ultimasLeiturasDireita)/num_amostras < 100:
+            tank_drive.on_for_seconds(SpeedPercent(50), SpeedPercent(40),1) #Se antes do verde foi visto preto
+        else:
+            tank_drive.on_for_seconds(SpeedPercent(35), SpeedPercent(5),1.4)  # Se antes do verde foi visto branco (Virar para a esquerda)
     else:
         Segue_linha()
 #///////////////////////////////////////////////////////////////////////////////////////////////////////////#
