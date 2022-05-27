@@ -14,10 +14,7 @@ from time import sleep
 
 # Funções ///////////////////////////////////////////////////////////////////////////////////////////////////#
 def Segue_linha():
-    BrancoEq = 53
-    MediaPretoEq = 65
-    BrancoDr = 70
-    MediaPretoDr = 90
+
     media_direita_linha = sum(lista_ultimasLeiturasDireita[-num_amostras_segue:])/num_amostras_segue
     media_esquerda_linha = sum(lista_ultimasLeiturasEsquerda[-num_amostras_segue:])/num_amostras_segue
     if media_esquerda_linha > BrancoEq and media_direita_linha <= BrancoDr:   # Branco na esquerda e Preto na direita
@@ -54,6 +51,38 @@ def viu_verde():
     else:
         return False #Não foi visto verde
 
+def viu_verde2():              # Testar a detecção de verde por valores seguidos de verde, e não por uma média dos últimos valores
+    verde_dr = 8
+    verde_eq = 4
+    num_identifica_verde = 3
+    media_direita_verde = sum(lista_ultimasLeiturasDireita[-num_amostras_verde:])/num_amostras_verde
+    media_esquerda_verde = sum(lista_ultimasLeiturasEsquerda[-num_amostras_verde:])/num_amostras_verde
+    if lista_ultimasLeiturasDireita[-num_identifica_verde:] == [verde_dr]*num_identifica_verde:         #Foi visto verde pelo sensor direito
+        if media_direita_verde < 35 and (len(lista_ultimasLeiturasDireita) >= num_amostras_menor):   # 35 amostras - dividindo em 35 se mostrou eficiente
+        #Se antes do verde foi visto preto
+            e = coloresquerdo.value()              
+            d = colordireito.value() 
+            while not (e > BrancoEq and d > BrancoDr):
+                tank_drive.on(SpeedPercent(10), SpeedPercent(15))
+                e = coloresquerdo.value()              
+                d = colordireito.value()   
+
+        else:
+            tank_drive.on_for_seconds(SpeedPercent(5), SpeedPercent(35),1.2)  # Se antes do verde foi visto branco (Virar para a direita) 1.4 segundos e (5; 35) é ideal
+        return True
+    elif lista_ultimasLeiturasEsquerda[-num_identifica_verde:] == [verde_eq]*num_identifica_verde:    # Foi visto verde pelo sensor esquerdo
+        if media_esquerda_verde < 27 and (len(lista_ultimasLeiturasEsquerda) >= num_amostras_menor):   #Se antes do verde foi visto preto
+            e = coloresquerdo.value()              
+            d = colordireito.value() 
+            while not (e > BrancoEq and d > BrancoDr):
+                tank_drive.on(SpeedPercent(10), SpeedPercent(15))
+                e = coloresquerdo.value()              
+                d = colordireito.value()   
+        else:
+            tank_drive.on_for_seconds(SpeedPercent(35), SpeedPercent(5),1.2)  # Se antes do verde foi visto branco (Virar para a esquerda)  1.4 segundos e (35; 5) é ideal
+        return True
+    else:
+        return False #Não foi visto verde
 
 def pegar_objeto_posicao():
     MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraAberta) # Abrir a Garra 
@@ -109,6 +138,17 @@ def Obstaculo():
     while(d > BrancoDr):
         d = colordireito.value()  
         tank_drive.on(SpeedPercent(25), SpeedPercent(25))    
+    
+
+def Sala_Resgate():
+    num_identifica_vermelho = 1
+    vermelho_dr = 54
+    if lista_ultimasLeiturasDireita[-num_identifica_vermelho:] == [vermelho_dr]*num_identifica_vermelho:
+        tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+        return True
+    else:
+        return False
+
 
 #///////////////////////////////////////////////////////////////////////////////////////////////////////////#
 
@@ -116,12 +156,12 @@ def Obstaculo():
 # Variaveis ////////////////////////////////////////////////////////////////////////////////////////////////#
 # Módulos e suas portas -------------------------------------------------
 MotorGarra = Motor(OUTPUT_D)
-dist = UltrasonicSensor(INPUT_2)
+dist = UltrasonicSensor(INPUT_1)
 coloresquerdo = ColorSensor(INPUT_3)
 colordireito = ColorSensor(INPUT_4)
 MotorBraço = Motor(OUTPUT_A)
 tank_drive = MoveTank(OUTPUT_C, OUTPUT_B)  #C - Direita    B - Esquerda
-dist_esquerda = UltrasonicSensor(INPUT_1)
+sensor_cor = LightSensor(INPUT_2)
 
 # Parametros ------------------------------------------------------------
 tempo_braço = 0.8                    # Tempo de subida/descida do braço
@@ -132,6 +172,11 @@ num_amostras_seguemaior = 171        # Ao ver 2 pretos, quantas amostras são vi
 num_amostras_menor = 10              # Quantas amostas são necessárias para identificar se foi visto um verde
 num_amostras_segue = 1               # Quantas amostras são utilizadas para a execução do segue linha
 num_amostras_verde = 35              # Ao ver verde, quantas amostras são vistas antes para determinar se antes foi visto preto ou branco
+
+BrancoEq = 53                 # O que diferencia o Preto do Branco no Segue Linha para o sensor direito
+MediaPretoEq = 65
+BrancoDr = 70                 # O que diferencia o Preto do Branco no Segue Linha para o sensor esquerdo
+MediaPretoDr = 90
 
 # Listas ----------------------------------------------------------------
 lista_ultimasLeiturasEsquerda = []
@@ -155,8 +200,8 @@ while a > time.time():
 #while True:
 
     # Variaveis -----------------------------------------------------------------
-    e = coloresquerdo.value()  #Valores Lidos :Branco 73-77, Preto 6-8, Verde 4                
-    d = colordireito.value()   #Valores Lidos :Branco 100, Preto 11, Verde 6-7 
+    e = coloresquerdo.value()  #Valores Lidos :Branco 73-77, Preto 6-8, Verde 4, Verm 42           
+    d = colordireito.value()   #Valores Lidos :Branco 100, Preto 11, Verde 6-7,  Verm 72
     x+=1
 
     if len(lista_ultimasLeiturasDireita) < num_amostras:  # Mantendo o tamanho da lista em no máximo 'num_amostras' valores
@@ -168,7 +213,7 @@ while a > time.time():
         lista_ultimasLeiturasEsquerda.append(e)
         lista_ultimasLeiturasDireita.append(d)
     distancia = dist.value()                            # Distância detectada pelo sensor ultrassom frontal
-    distanciaesq = dist_esquerda.value()                # Distância detectada pelo sensor ultrassom esquerdo
+    # distanciaesq = dist_esquerda.value()                # Distância detectada pelo sensor ultrassom esquerdo
 
     media_direita = sum(lista_ultimasLeiturasDireita[-num_amostras_menor:])/num_amostras_menor
     media_esquerda = sum(lista_ultimasLeiturasEsquerda[-num_amostras_menor:])/num_amostras_menor
@@ -176,13 +221,15 @@ while a > time.time():
     media_esquerda2 = sum(lista_ultimasLeiturasEsquerda[-num_amostras_seguemaior:])/num_amostras_seguemaior
     #----------------------------------------------------------------------------
 
-    # print("Esquerda: ", e, "Direita: ", d)
+    print("Esquerda: ", e, "Direita: ", d)
     # print("Media esquerda: ", media_esquerda, "Media direita: ", media_direita)
     # print("Distancia frente: ", distancia, "Distancia esquerda: ", distanciaesq)
 
     if (e == 0 and d == 0) or False:
         tank_drive.on(SpeedPercent(0),SpeedPercent(0)) 
-    elif viu_verde() :
+    elif viu_verde2() :
+        pass
+    elif Sala_Resgate():
         pass
     else:
         Segue_linha()
