@@ -7,56 +7,53 @@ from ev3dev2.console import *
 from time import sleep
 
 
-def calibrarGarra():
-    return
+# Olhando de Frente, o eixo da direita deve estar em cima do eixo da esquerda quando a garra astá fechada. Nesse caso, para abrir a garra é utilizada uma velocidade positiva e um tempo de 0.35s
+#MotorBraço.on_for_seconds(SpeedPercent(-20), tempo_braço)   #Subir a Garra
+# # Fechar a Garra  0.5 Ideal
 
+
+# Funções ///////////////////////////////////////////////////////////////////////////////////////////////////#
 def Segue_linha():
+    BrancoEq = 53
+    MediaPretoEq = 65
+    BrancoDr = 70
+    MediaPretoDr = 90
     media_direita_linha = sum(lista_ultimasLeiturasDireita[-num_amostras_segue:])/num_amostras_segue
     media_esquerda_linha = sum(lista_ultimasLeiturasEsquerda[-num_amostras_segue:])/num_amostras_segue
-    if media_esquerda_linha > 65 and media_direita_linha <= 90: 
-        tank_drive.on(SpeedPercent(-18),SpeedPercent(33))
-    elif media_esquerda_linha <= 65 and media_direita_linha > 90:
-        tank_drive.on(SpeedPercent(33),SpeedPercent(-18))
-    elif media_esquerda_linha > 65 and media_direita_linha > 90:
-        tank_drive.on(SpeedPercent(30), SpeedPercent(30))
-    elif media_esquerda2 < 15:
-        tank_drive.on(SpeedPercent(45),SpeedPercent(-25))
-    elif media_direita2 < 15:
-        tank_drive.on(SpeedPercent(-25),SpeedPercent(45))
-    #elif 55>e>30 and 55>d>30:
-        #tank_drive.on(SpeedPercent(0), SpeedPercent(0))
-    else:
-        tank_drive.on(SpeedPercent(5), SpeedPercent(5))   #-10 e 10
-    #print("Esquerda", e ,"Direita", d)
+    if media_esquerda_linha > BrancoEq and media_direita_linha <= BrancoDr:   # Branco na esquerda e Preto na direita
+        tank_drive.on(SpeedPercent(-18),SpeedPercent(33))                     # Virar pra Direita
+    elif media_esquerda_linha <= BrancoEq and media_direita_linha > BrancoDr: # Preto na esquerda e Branco na direita
+        tank_drive.on(SpeedPercent(33),SpeedPercent(-18))                     # Virar pra Esquerda
+    elif media_esquerda_linha > BrancoEq and media_direita_linha > BrancoDr:  # Branco na esquerda e na Direita
+        tank_drive.on(SpeedPercent(20), SpeedPercent(20))                     # Seguir Reto
+    else:  # Preto em ambos
+        if media_direita2 < MediaPretoDr and media_esquerda2 > MediaPretoEq:            # Preto na esquerda antes
+            tank_drive.on(SpeedPercent(45),SpeedPercent(-25))                 # Virar para Esquerda
+        elif media_esquerda2 < MediaPretoEq and media_direita2 > MediaPretoDr:         # Preto na direita antes
+            tank_drive.on(SpeedPercent(-25),SpeedPercent(45))                 # Virar pra Direita
+        else:                                                                 # Branco antes em ambos
+            tank_drive.on(SpeedPercent(5), SpeedPercent(5))                   # Andar reto
 
-def Segue_linha2():
-    # e1 = coloresquerdo.color
-    # d1 = colordireito.color
-    if e1 == 6 and d1 <= 1: 
-        tank_drive.on(SpeedPercent(-18),SpeedPercent(33))
-    elif e1 == 1 and d1 == 6:
-        tank_drive.on(SpeedPercent(33),SpeedPercent(-18))
-    elif e1 == 6 and d1 == 6:
-        tank_drive.on(SpeedPercent(30), SpeedPercent(30))
-    elif media_esquerda2 < 15:
-        tank_drive.on(SpeedPercent(45),SpeedPercent(-25))
-    elif media_direita2 < 15:
-        tank_drive.on(SpeedPercent(-25),SpeedPercent(45))
-    #elif 55>e>30 and 55>d>30:
-        #tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+def viu_verde():
+    media_direita_verde = sum(lista_ultimasLeiturasDireita[-num_amostras_verde:])/num_amostras_verde
+    media_esquerda_verde = sum(lista_ultimasLeiturasEsquerda[-num_amostras_verde:])/num_amostras_verde
+    if media_direita <= 8.2:         #Foi visto verde pelo sensor direito
+        tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+        if media_direita_verde < 35 and (len(lista_ultimasLeiturasDireita) >= num_amostras_menor):   # 35 amostras - dividindo em 35 se mostrou eficiente
+            tank_drive.on_for_seconds(SpeedPercent(40), SpeedPercent(40),1) #Se antes do verde foi visto preto
+        else:
+            tank_drive.on_for_seconds(SpeedPercent(5), SpeedPercent(35),1.4)  # Se antes do verde foi visto branco (Virar para a direita) 1.4 segundos e (5; 35) é ideal
+        return True
+    elif media_esquerda <= 4.8:    # Foi visto verde pelo sensor esquerdo
+        tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+        if media_esquerda_verde < 27 and (len(lista_ultimasLeiturasEsquerda) >= num_amostras_menor):
+            tank_drive.on_for_seconds(SpeedPercent(50), SpeedPercent(40),1) #Se antes do verde foi visto preto
+        else:
+            tank_drive.on_for_seconds(SpeedPercent(35), SpeedPercent(5),1.4)  # Se antes do verde foi visto branco (Virar para a esquerda)  1.4 segundos e (35; 5) é ideal
+        return True
     else:
-        tank_drive.on(SpeedPercent(5), SpeedPercent(5))   #-10 e 10
-    #print("Esquerda", e ,"Direita", d)
+        return False #Não foi visto verde
 
-def pegar_objeto():
-    MotorGarra.on_for_seconds(SpeedPercent(-15),tempo_garra+tempo_adicional) # Abrir a Garra 0.67 Ideal
-    time.sleep (0.5)
-    MotorBraço.on_for_seconds(SpeedPercent(20),tempo_braço) # Descer a Garra
-    time.sleep (0.5)
-    MotorGarra.on_for_seconds(SpeedPercent(15),tempo_garra) # Fechar a Garra  0.5 Ideal
-    time.sleep (0.5)
-    MotorBraço.on_for_seconds(SpeedPercent(-20), tempo_braço) # Subir a Garra
-    time.sleep (0.5)
 
 def pegar_objeto_posicao():
     MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraAberta) # Abrir a Garra 
@@ -65,13 +62,11 @@ def pegar_objeto_posicao():
     time.sleep (0.5)
     MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraFechada) # Fechar a Garra 
     time.sleep (0.5)
-    MotorBraço.on_to_position(SpeedPercent(20),PosicaoBraçoLevantado) # Subir a Garra
-    MotorBraço.on_for_seconds(SpeedPercent(-20), tempo_adicional)
+    MotorBraço.on_to_position(SpeedPercent(20),PosicaoBraçoLevantado) # Subir a Garra0
     time.sleep (0.5)
 
-
 def Obstaculo():
-    #-----------------------------------------------
+    # Vendo e virando -----------------------------------------------
     distancia = dist.value()
     distanciaesq = dist_esquerda.value()
     time.sleep(1)
@@ -79,7 +74,7 @@ def Obstaculo():
         distancia = dist.value()
         distanciaesq = dist_esquerda.value()
         tank_drive.on(SpeedPercent(-25), SpeedPercent(25))
-    #-----------------------------------------------
+    # Virando ate ver -----------------------------------------------
     tank_drive.on(SpeedPercent(0), SpeedPercent(0))
     time.sleep(1)
     while(distanciaesq<240):
@@ -91,13 +86,14 @@ def Obstaculo():
     tank_drive.on_for_seconds(SpeedPercent(25), SpeedPercent(25),1)
     tank_drive.on(SpeedPercent(0), SpeedPercent(0))
     time.sleep(1)
-   #-------------------------------------------------------
+    # Andando ate ver ------------------------------------------------------
     tank_drive.on_for_seconds(SpeedPercent(25), SpeedPercent(-25),0.9)
     time.sleep(1)
     while(distanciaesq>100):
         distancia = dist.value()
         distanciaesq = dist_esquerda.value()
         tank_drive.on(SpeedPercent(25), SpeedPercent(25))
+    # Andando ate parar de ver ---------------------------------------------
     tank_drive.on(SpeedPercent(0), SpeedPercent(0))
     time.sleep(1)
     while(distanciaesq<100):
@@ -105,17 +101,20 @@ def Obstaculo():
         distanciaesq = dist_esquerda.value()
         tank_drive.on(SpeedPercent(25), SpeedPercent(25))
     tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+    # Andando de volta até a linha -----------------------------------------
     time.sleep(1)
     tank_drive.on_for_seconds(SpeedPercent(25), SpeedPercent(-25),0.6)
     time.sleep(1)
     d = colordireito.value()
-    while(d > 90):
+    while(d > BrancoDr):
         d = colordireito.value()  
         tank_drive.on(SpeedPercent(25), SpeedPercent(25))    
 
+#///////////////////////////////////////////////////////////////////////////////////////////////////////////#
 
 
-
+# Variaveis ////////////////////////////////////////////////////////////////////////////////////////////////#
+# Módulos e suas portas -------------------------------------------------
 MotorGarra = Motor(OUTPUT_D)
 dist = UltrasonicSensor(INPUT_2)
 coloresquerdo = ColorSensor(INPUT_3)
@@ -123,41 +122,44 @@ colordireito = ColorSensor(INPUT_4)
 MotorBraço = Motor(OUTPUT_A)
 tank_drive = MoveTank(OUTPUT_C, OUTPUT_B)  #C - Direita    B - Esquerda
 dist_esquerda = UltrasonicSensor(INPUT_1)
-tempo_braço = 0.8
-tempo_garra = 0.35
-tempo_adicional = 0
-num_amostras = 50
-num_amostras_seguemaior = 20
-num_amostras_menor = 1
-num_amostras_segue = 1
+
+# Parametros ------------------------------------------------------------
+tempo_braço = 0.8                    # Tempo de subida/descida do braço
+tempo_garra = 0.35                   # Tempo de abertura/fechamento da garra
+
+num_amostras = 250                  # Número total de amostras que são guardadas na lista
+num_amostras_seguemaior = 171        # Ao ver 2 pretos, quantas amostras são vistas antes para determinar se antes foi visto preto ou branco
+num_amostras_menor = 10              # Quantas amostas são necessárias para identificar se foi visto um verde
+num_amostras_segue = 1               # Quantas amostras são utilizadas para a execução do segue linha
+num_amostras_verde = 35              # Ao ver verde, quantas amostras são vistas antes para determinar se antes foi visto preto ou branco
+
+# Listas ----------------------------------------------------------------
 lista_ultimasLeiturasEsquerda = []
 lista_ultimasLeiturasDireita = []
 
-# Olhando de Frente, o eixo da direita deve estar em cima do eixo da esquerda quando a garra astá fechada. Nesse caso, para abrir a garra é utilizada uma velocidade positiva e um tempo de 0.35s
-#MotorBraço.on_for_seconds(SpeedPercent(-20), tempo_braço)   #Subir a Garra
-# # Fechar a Garra  0.5 Ideal
-
-
+# Garra -----------------------------------------------------------------  Garra deve começar fechada e abaixada, na altura em que ela pega a vítima
 PosicaoGarraFechada = MotorGarra.position
 PosicaoBraçoAbaixado = MotorBraço.position
-
-# MotorBraço.on_for_seconds(SpeedPercent(-20), tempo_braço) # Subindo a Garra
-# MotorGarra.on_for_seconds(SpeedPercent(15),tempo_garra) # Abrindo a Garra
+# Preparação ------------------------------------------------------------
+# MotorBraço.on_for_seconds(SpeedPercent(-20), tempo_braço) # Subindo o Braço
+#MotorGarra.on_for_seconds(SpeedPercent(15),tempo_garra) # Abrindo a Garra
 # time.sleep(1)
-
-#while True:
-#    tempo_adicional=0
 PosicaoGarraAberta = MotorGarra.position
 PosicaoBraçoLevantado = MotorBraço.position
+#MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraFechada) # Fechar a Garra 
+#///////////////////////////////////////////////////////////////////////////////////////////////////////////#
+x = 0
+a = time.time() + 30000
+while a > time.time():
+# Programa principal ///////////////////////////////////////////////////////////////////////////////////////#
+#while True:
 
-# MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraFechada) # Fechar a Garra 
-
-while True:
+    # Variaveis -----------------------------------------------------------------
     e = coloresquerdo.value()  #Valores Lidos :Branco 73-77, Preto 6-8, Verde 4                
     d = colordireito.value()   #Valores Lidos :Branco 100, Preto 11, Verde 6-7 
-    e = coloresquerdo.reflected_light_intensity
-    d = colordireito.reflected_light_intensity            
-    if len(lista_ultimasLeiturasDireita) < num_amostras:
+    x+=1
+
+    if len(lista_ultimasLeiturasDireita) < num_amostras:  # Mantendo o tamanho da lista em no máximo 'num_amostras' valores
         lista_ultimasLeiturasEsquerda.append(e)
         lista_ultimasLeiturasDireita.append(d)
     else:
@@ -165,126 +167,36 @@ while True:
         lista_ultimasLeiturasEsquerda.pop(0)
         lista_ultimasLeiturasEsquerda.append(e)
         lista_ultimasLeiturasDireita.append(d)
+    distancia = dist.value()                            # Distância detectada pelo sensor ultrassom frontal
+    distanciaesq = dist_esquerda.value()                # Distância detectada pelo sensor ultrassom esquerdo
 
-    distancia = dist.value()
-    distanciaesq = dist_esquerda.value()
     media_direita = sum(lista_ultimasLeiturasDireita[-num_amostras_menor:])/num_amostras_menor
     media_esquerda = sum(lista_ultimasLeiturasEsquerda[-num_amostras_menor:])/num_amostras_menor
     media_direita2 = sum(lista_ultimasLeiturasDireita[-num_amostras_seguemaior:])/num_amostras_seguemaior
     media_esquerda2 = sum(lista_ultimasLeiturasEsquerda[-num_amostras_seguemaior:])/num_amostras_seguemaior
-    # print(media_esquerda)
-    # print(media_direita)
-    # print("Esquerda: ", e, "Direita: ", d, "Distancia: ", distancia)
-    # print("Dist 2  = ", distanciaesq)
+    #----------------------------------------------------------------------------
 
-    if e == 0 and d == 0 or False:
+    # print("Esquerda: ", e, "Direita: ", d)
+    # print("Media esquerda: ", media_esquerda, "Media direita: ", media_direita)
+    # print("Distancia frente: ", distancia, "Distancia esquerda: ", distanciaesq)
+
+    if (e == 0 and d == 0) or False:
         tank_drive.on(SpeedPercent(0),SpeedPercent(0)) 
-        # print("RGB do esquerdo", coloresquerdo.ambient_light_intensity) #Ambiente Branco 3 --- Preto 1 ----- Verde 0
-        # print("RGB do direito", colordireito.ambient_light_intensity) #AMbiebte  Branco 4/5 --- Preto 1
-    elif media_direita <= 7 and (len(lista_ultimasLeiturasDireita) >= num_amostras_menor): #Checa se vê verde do lado direito Valor <= 9
-        if sum(lista_ultimasLeiturasDireita)/num_amostras < 60:
-            tank_drive.on_for_seconds(SpeedPercent(40), SpeedPercent(50),1) #Se antes do verde foi visto preto
-        else:
-            tank_drive.on_for_seconds(SpeedPercent(5), SpeedPercent(35),1.4)  # Se antes do verde foi visto branco (Virar para a direita)
-
-    elif  media_esquerda <= 4 and (len(lista_ultimasLeiturasEsquerda) >= num_amostras_menor): #Checa se vê verde do lado esquerdo Valor <= 4
-        if sum(lista_ultimasLeiturasEsquerda)/num_amostras < 60:
-            tank_drive.on_for_seconds(SpeedPercent(50), SpeedPercent(40),1) #Se antes do verde foi visto preto
-        else:
-            tank_drive.on_for_seconds(SpeedPercent(35), SpeedPercent(5),1.4)  # Se antes do verde foi visto branco (Virar para a esquerda)
+    elif viu_verde() :
+        pass
     else:
         Segue_linha()
 
-
     
-    # if distancia <135 : 
+    # if distancia <135 :                                    #Se foi visto um obstáculo
     #     tank_drive.on(SpeedPercent(0), SpeedPercent(0))
     #     Obstaculo()
-    #     pegar_objeto_posicao()
 
-    #if checa_verde:
-    # if 30<=sum(lista_ultimasLeiturasEsquerda)/10<=40 or 30<=lista_ultimasLeiturasDireita/10<=40:#se um dos sensores identificar o verde 
-    #     tank_drive.on(SpeedPercent(0), SpeedPercent(0))
-    #     if(30<=sum(lista_ultimasLeiturasEsquerda)/10<=40):
-    #         return
-            
-    #     else:
-    #         return
-    #Segue_linha2()
+#///////////////////////////////////////////////////////////////////////////////////////////////////////////#
+
+print(x)
+tank_drive.on(SpeedPercent(0), SpeedPercent(0))
 
 
-
-
-
-
-
-
-# while True:
-#     if t.is_pressed and etapa == 1:
-#         #Subir a Garra  
-#         MotorBraço.on_for_seconds(SpeedPercent(-20), tempo_braço)
-#         while (t.is_pressed):
-#             MotorBraço.on(SpeedPercent(0))
-#         print("Etapa 1", etapa)
-#         etapa +=1
-#     if t.is_pressed and etapa == 2:
-#         #Abrir a Garra
-#         MotorGarra.on_for_seconds(SpeedPercent(-15),0.5)
-#         while (t.is_pressed):
-#             MotorGarra.on(SpeedPercent(0))
-#         print("Etapa 2", etapa)
-#         etapa +=1
-#     if t.is_pressed and etapa == 3:
-#         #Descer a Garra
-#         MotorBraço.on_for_seconds(SpeedPercent(20),tempo_braço)
-#         while (t.is_pressed):
-#             MotorBraço.on(SpeedPercent(0))
-#         print("Etapa 3", etapa)
-#         etapa +=1
-#     if t.is_pressed and etapa == 4:
-#         #Fechar a Garra
-#         MotorGarra.on_for_seconds(SpeedPercent(15),0.67)
-#         while (t.is_pressed):
-#             MotorGarra.on(SpeedPercent(0))
-#         print("Etapa 4", etapa)
-#         etapa = 1
-
-
-
-
-
-# x = 100
-# etapa = 1
-# # MotorGarra.on_for_degrees(SpeedPercent(15), -x)
-# # garra_aberta =  MotorGarra.position
-# # MotorGarra.on_for_degrees(SpeedPercent(15), -x)
-# # garra_fechada = MotorGarra.position
-# # MotorGarra.stop_action = 'coast'
-# # MotorGarra.speed_sp = 0.1 * MotorGarra.max_speed
-
-# while True:
-#     if t.is_pressed and etapa == 1:
-#         #position_sp = garra_aberta
-#         #MotorGarra.run_to_abs_pos
-#         MotorGarra.on_for_degrees(SpeedPercent(15), x)
-#         while t.is_pressed:
-#             MotorGarra.on(SpeedPercent(0))
-#         print('to aqui')
-#         etapa += 1
-#     if t.is_pressed and etapa == 2:
-#         #position_sp = garra_fechada
-#         #MotorGarra.run_to_abs_pos
-#         MotorGarra.on_for_degrees(SpeedPercent(15), x)
-#         while t.is_pressed:
-#             MotorGarra.on(SpeedPercent(0))
-#         print('to aqui 2')
-#         etapa = 1
-
-
-
-# x = 60
-# while True:
-#     MotorGarra.on_for_degrees(SpeedPercent(15), x)
-#     MotorGarra.on_for_degrees(SpeedPercent(15), -x)
-
-
+while True:
+    pass
