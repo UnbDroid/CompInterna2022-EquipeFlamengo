@@ -63,7 +63,7 @@ def viu_verde2():              # Testar a detecção de verde por valores seguid
             e = coloresquerdo.value()              
             d = colordireito.value() 
             while not (e > BrancoEq and d > BrancoDr):
-                tank_drive.on(SpeedPercent(10), SpeedPercent(15))
+                tank_drive.on(SpeedPercent(15), SpeedPercent(10))
                 e = coloresquerdo.value()              
                 d = colordireito.value()   
 
@@ -75,7 +75,7 @@ def viu_verde2():              # Testar a detecção de verde por valores seguid
             e = coloresquerdo.value()              
             d = colordireito.value() 
             while not (e > BrancoEq and d > BrancoDr):
-                tank_drive.on(SpeedPercent(10), SpeedPercent(15))
+                tank_drive.on(SpeedPercent(15), SpeedPercent(10))
                 e = coloresquerdo.value()              
                 d = colordireito.value()   
         else:
@@ -92,7 +92,7 @@ def pegar_objeto_posicao():
     MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraFechada) # Fechar a Garra 
     time.sleep (0.5)
     MotorBraço.on_to_position(SpeedPercent(20),PosicaoBraçoLevantado) # Subir a Garra0
-    time.sleep (0.5)
+    time.sleep (2)
 
 def Obstaculo():
     # Vendo e virando -----------------------------------------------
@@ -138,16 +138,64 @@ def Obstaculo():
     while(d > BrancoDr):
         d = colordireito.value()  
         tank_drive.on(SpeedPercent(25), SpeedPercent(25))    
-    
 
+
+
+def on_for_seconds(v1, v2, t):
+    tempo = time.time()+t
+    while time.time() < tempo:
+            tank_drive.on(SpeedPercent(v1), SpeedPercent(v2))
+            distancia = dist.value()
+            c = sensor_cor.value()
+            if c >= 300: #or c <= 150:
+                tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+                pegar_objeto_posicao()
+            elif distancia < 200:
+                time.sleep(0.2)
+                tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+                time.sleep(0.2)
+                tank_drive.on_for_seconds(SpeedPercent(-25), SpeedPercent(-25),0.6)
+                tank_drive.on_for_seconds(SpeedPercent(25), SpeedPercent(-25),2)
+    time.sleep(0.3)
+    
 def Sala_Resgate():
-    num_identifica_vermelho = 1
-    vermelho_dr = 54
-    if lista_ultimasLeiturasDireita[-num_identifica_vermelho:] == [vermelho_dr]*num_identifica_vermelho:
-        tank_drive.on(SpeedPercent(0), SpeedPercent(0))
-        return True
-    else:
-        return False
+    # num_identifica_vermelho = 1
+    # vermelho_dr = 54
+    # if lista_ultimasLeiturasDireita[-num_identifica_vermelho:] == [vermelho_dr]*num_identifica_vermelho:
+    #     tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+    #     return True
+    # else:
+    #     return False
+    while True:
+        c = sensor_cor.value()
+        distancia = dist.value()
+        print(c)
+        on_for_seconds(15,-15,0.6)
+        on_for_seconds(-15,15,1.2)
+        on_for_seconds(15,-15,0.6)
+        on_for_seconds(20,20,2)
+
+        # tank_drive.on_for_seconds(SpeedPercent(15), SpeedPercent(-15),0.6)
+        # tank_drive.on_for_seconds(SpeedPercent(-15), SpeedPercent(15),1.2)
+        # tank_drive.on_for_seconds(SpeedPercent(15), SpeedPercent(-15),0.6)
+        # tempo = time.time() + 2
+        # while time.time() < tempo:
+        #     tank_drive.on(SpeedPercent(20), SpeedPercent(20))
+        #     distancia = dist.value()
+        #     c = sensor_cor.value()
+        #     if distancia < 200:
+        #         time.sleep(0.2)
+        #         tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+        #         time.sleep(0.2)
+        #         tank_drive.on_for_seconds(SpeedPercent(-25), SpeedPercent(-25),0.6)
+        #         tank_drive.on_for_seconds(SpeedPercent(25), SpeedPercent(-25),2)
+        #     elif c >= 310 or c <= 150:                                                              #230 Bola Preta - 350 Bola Branca
+        #         tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+        #         pegar_objeto_posicao()
+            #return True
+        #return False
+
+
 
 
 #///////////////////////////////////////////////////////////////////////////////////////////////////////////#
@@ -165,7 +213,7 @@ sensor_cor = LightSensor(INPUT_2)
 
 # Parametros ------------------------------------------------------------
 tempo_braço = 0.8                    # Tempo de subida/descida do braço
-tempo_garra = 0.35                   # Tempo de abertura/fechamento da garra
+tempo_garra = 0.36                   # Tempo de abertura/fechamento da garra
 
 num_amostras = 250                  # Número total de amostras que são guardadas na lista
 num_amostras_seguemaior = 171        # Ao ver 2 pretos, quantas amostras são vistas antes para determinar se antes foi visto preto ou branco
@@ -186,13 +234,12 @@ lista_ultimasLeiturasDireita = []
 PosicaoGarraFechada = MotorGarra.position
 PosicaoBraçoAbaixado = MotorBraço.position
 # Preparação ------------------------------------------------------------
-# MotorBraço.on_for_seconds(SpeedPercent(-20), tempo_braço) # Subindo o Braço
-#MotorGarra.on_for_seconds(SpeedPercent(15),tempo_garra) # Abrindo a Garra
+MotorBraço.on_for_seconds(SpeedPercent(-20), tempo_braço) # Subindo o Braço
+MotorGarra.on_for_seconds(SpeedPercent(15),tempo_garra) # Abrindo a Garra
 # time.sleep(1)
 PosicaoGarraAberta = MotorGarra.position
 PosicaoBraçoLevantado = MotorBraço.position
-#MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraFechada) # Fechar a Garra 
-#///////////////////////////////////////////////////////////////////////////////////////////////////////////#
+MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraFechada) # Fechar a Garra
 x = 0
 a = time.time() + 30000
 while a > time.time():
@@ -221,16 +268,18 @@ while a > time.time():
     media_esquerda2 = sum(lista_ultimasLeiturasEsquerda[-num_amostras_seguemaior:])/num_amostras_seguemaior
     #----------------------------------------------------------------------------
 
-    print("Esquerda: ", e, "Direita: ", d)
+    #print("Esquerda: ", e, "Direita: ", d)
     # print("Media esquerda: ", media_esquerda, "Media direita: ", media_direita)
     # print("Distancia frente: ", distancia, "Distancia esquerda: ", distanciaesq)
 
-    if (e == 0 and d == 0) or False:
-        tank_drive.on(SpeedPercent(0),SpeedPercent(0)) 
+    if (e == 0 and d == 0) or True:
+        #tank_drive.on(SpeedPercent(0),SpeedPercent(0)) 
+        print(sensor_cor.value())
+        Sala_Resgate()
     elif viu_verde2() :
         pass
-    elif Sala_Resgate():
-        pass
+    # elif Sala_Resgate():
+    #     pass
     else:
         Segue_linha()
 
