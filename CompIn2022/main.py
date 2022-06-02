@@ -5,6 +5,7 @@ from ev3dev2.sensor.lego import *
 #from ev3dev.ev3 import *
 from ev3dev2.console import *
 from time import sleep
+from random import *
 
 
 # Olhando de Frente, o eixo da direita deve estar em cima do eixo da esquerda quando a garra astá fechada. Nesse caso, para abrir a garra é utilizada uma velocidade positiva e um tempo de 0.35s
@@ -140,23 +141,51 @@ def Obstaculo():
         tank_drive.on(SpeedPercent(25), SpeedPercent(25))    
 
 
+def pegou_a_bolinha(): #Função feita para retornar a bolinha para a área de resgate depois de pegá-la
+    distancia = dist.value()
+    d = colordireito.value()
+    e = coloresquerdo.value()
+    while not (e <= 10 or d <= 15):
+            distancia = dist.value()
+            d = colordireito.value()
+            e = coloresquerdo.value()
+            tank_drive.on(SpeedPercent(30), SpeedPercent(30))
+            if distancia < 140: 
+                tank_drive.on_for_seconds(SpeedPercent(25), SpeedPercent(-25),0.8)
 
-def on_for_seconds(v1, v2, t):
+    tank_drive.on(SpeedPercent(0), SpeedPercent(0))        
+    MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraAberta) # Abrir a Garra 
+    time.sleep (0.5)   
+    MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraFechada) # Fechar a Garra 
+    time.sleep (0.5) 
+
+
+
+def on_for_seconds(v1, v2, t, cond = True):  #Função implementada para fazer um on_for_seconds em que há a checagem durante o movimento. A condição 'cond' define se é necessária a checagem de paredes, que não é necessária na manobra do robô imediatamente depois de ver uma parede.
     tempo = time.time()+t
     while time.time() < tempo:
-            tank_drive.on(SpeedPercent(v1), SpeedPercent(v2))
-            distancia = dist.value()
-            c = sensor_cor.value()
-            if c >= 300: #or c <= 150:
+        tank_drive.on(SpeedPercent(v1), SpeedPercent(v2))
+        distancia = dist.value()
+        c = sensor_cor.value()
+        d = colordireito.value()
+        e = coloresquerdo.value()
+        if c < 35 and distancia > 35:                                                  #17:40          30 No AMbiente      35   Branco  
                 tank_drive.on(SpeedPercent(0), SpeedPercent(0))
                 pegar_objeto_posicao()
-            elif distancia < 200:
+                print(c)
+                c = sensor_cor.value()
+                if c > 35:
+                    pegou_a_bolinha()
+                break
+        elif (distancia < 140 and cond) or d <50 or e <30:              #Girar se ver uma parede ou se ver o chão da sala
                 time.sleep(0.2)
                 tank_drive.on(SpeedPercent(0), SpeedPercent(0))
                 time.sleep(0.2)
-                tank_drive.on_for_seconds(SpeedPercent(-25), SpeedPercent(-25),0.6)
-                tank_drive.on_for_seconds(SpeedPercent(25), SpeedPercent(-25),2)
-    time.sleep(0.3)
+                on_for_seconds(-25,-25,0.6, False)
+                seed()
+                on_for_seconds(25,-5,2.1, False)
+                break
+        #elif  d <50 or e <30:
     
 def Sala_Resgate():
     # num_identifica_vermelho = 1
@@ -167,11 +196,10 @@ def Sala_Resgate():
     # else:
     #     return False
     while True:
-        c = sensor_cor.value()
-        distancia = dist.value()
-        print(c)
+        c = sensor_cor.distance_centimeters_continuous
+        distancia = dist.distance_centimeters_continuous
         on_for_seconds(15,-15,0.6)
-        on_for_seconds(-15,15,1.2)
+        on_for_seconds(-15,15,1.47)
         on_for_seconds(15,-15,0.6)
         on_for_seconds(20,20,2)
 
@@ -209,11 +237,11 @@ coloresquerdo = ColorSensor(INPUT_3)
 colordireito = ColorSensor(INPUT_4)
 MotorBraço = Motor(OUTPUT_A)
 tank_drive = MoveTank(OUTPUT_C, OUTPUT_B)  #C - Direita    B - Esquerda
-sensor_cor = LightSensor(INPUT_2)
+sensor_cor = UltrasonicSensor(INPUT_2)
 
-# Parametros ------------------------------------------------------------
+# Parâmetros ------------------------------------------------------------
 tempo_braço = 0.8                    # Tempo de subida/descida do braço
-tempo_garra = 0.36                   # Tempo de abertura/fechamento da garra
+tempo_garra = 0.35                   # Tempo de abertura/fechamento da garra
 
 num_amostras = 250                  # Número total de amostras que são guardadas na lista
 num_amostras_seguemaior = 171        # Ao ver 2 pretos, quantas amostras são vistas antes para determinar se antes foi visto preto ou branco
@@ -222,9 +250,9 @@ num_amostras_segue = 1               # Quantas amostras são utilizadas para a e
 num_amostras_verde = 35              # Ao ver verde, quantas amostras são vistas antes para determinar se antes foi visto preto ou branco
 
 BrancoEq = 53                 # O que diferencia o Preto do Branco no Segue Linha para o sensor direito
-MediaPretoEq = 65
+MediaPretoEq = 65             # Valor que diferencia Preto do Branco na média dos valores utilizados após ver dois pretos pelo sensor esquerdo
 BrancoDr = 70                 # O que diferencia o Preto do Branco no Segue Linha para o sensor esquerdo
-MediaPretoDr = 90
+MediaPretoDr = 90             # Valor que diferencia Preto do Branco na média dos valores utilizados após ver dois pretos pelo sensor direito
 
 # Listas ----------------------------------------------------------------
 lista_ultimasLeiturasEsquerda = []
@@ -247,8 +275,8 @@ while a > time.time():
 #while True:
 
     # Variaveis -----------------------------------------------------------------
-    e = coloresquerdo.value()  #Valores Lidos :Branco 73-77, Preto 6-8, Verde 4, Verm 42           
-    d = colordireito.value()   #Valores Lidos :Branco 100, Preto 11, Verde 6-7,  Verm 72
+    e = coloresquerdo.value()  #Valores Lidos :Branco 73-77, Preto 6-8, Verde 4, Verm 42, Azul 5         
+    d = colordireito.value()   #Valores Lidos :Branco 100, Preto 11, Verde 6-7,  Verm 72, Azul 8
     x+=1
 
     if len(lista_ultimasLeiturasDireita) < num_amostras:  # Mantendo o tamanho da lista em no máximo 'num_amostras' valores
@@ -273,9 +301,9 @@ while a > time.time():
     # print("Distancia frente: ", distancia, "Distancia esquerda: ", distanciaesq)
 
     if (e == 0 and d == 0) or True:
-        #tank_drive.on(SpeedPercent(0),SpeedPercent(0)) 
-        print(sensor_cor.value())
+        #tank_drive.on_for_seconds(SpeedPercent(20),SpeedPercent(20),50) 
         Sala_Resgate()
+        tank_drive.on(SpeedPercent(0), SpeedPercent(0))
     elif viu_verde2() :
         pass
     # elif Sala_Resgate():
