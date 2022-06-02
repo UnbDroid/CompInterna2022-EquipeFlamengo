@@ -6,6 +6,8 @@ from ev3dev2.sensor.lego import *
 from ev3dev2.console import *
 from time import sleep
 from random import *
+import sys
+from ev3dev2.sound import Sound
 
 
 # Olhando de Frente, o eixo da direita deve estar em cima do eixo da esquerda quando a garra astá fechada. Nesse caso, para abrir a garra é utilizada uma velocidade positiva e um tempo de 0.35s
@@ -58,13 +60,16 @@ def viu_verde2():              # Testar a detecção de verde por valores seguid
     num_identifica_verde = 3
     media_direita_verde = sum(lista_ultimasLeiturasDireita[-num_amostras_verde:])/num_amostras_verde
     media_esquerda_verde = sum(lista_ultimasLeiturasEsquerda[-num_amostras_verde:])/num_amostras_verde
-    if lista_ultimasLeiturasDireita[-num_identifica_verde:] == [verde_dr]*num_identifica_verde:         #Foi visto verde pelo sensor direito
-        if media_direita_verde < 35 and (len(lista_ultimasLeiturasDireita) >= num_amostras_menor):   # 35 amostras - dividindo em 35 se mostrou eficiente
+    if lista_ultimasLeiturasDireita[-num_identifica_verde:] == [verde_dr]*num_identifica_verde:   #Foi visto verde pelo sensor direito
+        #tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+        #time.sleep(0.1)
+        #my_sound.tone([(392, 350, 100), (392, 350, 100), (392, 350, 100), (311.1, 250, 100)])
+        if media_direita_verde < 24 and (len(lista_ultimasLeiturasDireita) >= num_amostras_menor):   # 35 amostras - dividindo em 35 se mostrou eficiente
         #Se antes do verde foi visto preto
             e = coloresquerdo.value()              
             d = colordireito.value() 
             while not (e > BrancoEq and d > BrancoDr):
-                tank_drive.on(SpeedPercent(15), SpeedPercent(10))
+                tank_drive.on(SpeedPercent(10), SpeedPercent(15))
                 e = coloresquerdo.value()              
                 d = colordireito.value()   
 
@@ -72,11 +77,14 @@ def viu_verde2():              # Testar a detecção de verde por valores seguid
             tank_drive.on_for_seconds(SpeedPercent(5), SpeedPercent(35),1.2)  # Se antes do verde foi visto branco (Virar para a direita) 1.4 segundos e (5; 35) é ideal
         return True
     elif lista_ultimasLeiturasEsquerda[-num_identifica_verde:] == [verde_eq]*num_identifica_verde:    # Foi visto verde pelo sensor esquerdo
-        if media_esquerda_verde < 27 and (len(lista_ultimasLeiturasEsquerda) >= num_amostras_menor):   #Se antes do verde foi visto preto
+        #tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+        #time.sleep(0.1)
+        #my_sound.tone([(784, 350, 100), (392, 250, 100), (392, 25, 100), (784, 350, 100)])
+        if media_esquerda_verde < 18 and (len(lista_ultimasLeiturasEsquerda) >= num_amostras_menor):   #Se antes do verde foi visto preto
             e = coloresquerdo.value()              
             d = colordireito.value() 
             while not (e > BrancoEq and d > BrancoDr):
-                tank_drive.on(SpeedPercent(15), SpeedPercent(10))
+                tank_drive.on(SpeedPercent(10), SpeedPercent(15))
                 e = coloresquerdo.value()              
                 d = colordireito.value()   
         else:
@@ -146,12 +154,16 @@ def pegou_a_bolinha(): #Função feita para retornar a bolinha para a área de r
     d = colordireito.value()
     e = coloresquerdo.value()
     while not (e <= 10 or d <= 15):
-            distancia = dist.value()
-            d = colordireito.value()
-            e = coloresquerdo.value()
-            tank_drive.on(SpeedPercent(30), SpeedPercent(30))
-            if distancia < 140: 
-                tank_drive.on_for_seconds(SpeedPercent(25), SpeedPercent(-25),0.8)
+        distancia = dist.value()
+        d = colordireito.value()
+        e = coloresquerdo.value()
+
+        lista_distancia_cima.pop(0)
+        lista_distancia_cima.append(distancia)
+
+        tank_drive.on(SpeedPercent(30), SpeedPercent(30))
+        if sum(lista_distancia_cima)/num_distancia < 140: 
+            tank_drive.on_for_seconds(SpeedPercent(25), SpeedPercent(-25),0.8)
 
     tank_drive.on(SpeedPercent(0), SpeedPercent(0))        
     MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraAberta) # Abrir a Garra 
@@ -169,23 +181,31 @@ def on_for_seconds(v1, v2, t, cond = True):  #Função implementada para fazer u
         c = sensor_cor.value()
         d = colordireito.value()
         e = coloresquerdo.value()
-        if c < 35 and distancia > 35:                                                  #17:40          30 No AMbiente      35   Branco  
-                tank_drive.on(SpeedPercent(0), SpeedPercent(0))
-                pegar_objeto_posicao()
-                print(c)
-                c = sensor_cor.value()
-                if c > 35:
-                    pegou_a_bolinha()
-                break
-        elif (distancia < 140 and cond) or d <50 or e <30:              #Girar se ver uma parede ou se ver o chão da sala
-                time.sleep(0.2)
-                tank_drive.on(SpeedPercent(0), SpeedPercent(0))
-                time.sleep(0.2)
-                on_for_seconds(-25,-25,0.6, False)
-                seed()
-                on_for_seconds(25,-5,2.1, False)
-                break
-        #elif  d <50 or e <30:
+
+        lista_distancia_baixo.pop(0)
+        lista_distancia_cima.pop(0)
+        lista_distancia_baixo.append(c)
+        lista_distancia_cima.append(distancia)
+
+        if sum(lista_distancia_baixo)/num_distancia < 50:                                                  #17:40          30 No AMbiente      35   Branco  
+            tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+            pegar_objeto_posicao()
+            print(c)
+            c = sensor_cor.value()
+            if c > 50:
+                pegou_a_bolinha()
+            break
+        elif (sum(lista_distancia_cima)/num_distancia < 140 and cond):              #Girar se ver uma parede ou se ver o chão da sala
+            time.sleep(0.2)
+            tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+            time.sleep(0.2)
+            on_for_seconds(-25,-25,0.6, False)
+            on_for_seconds(25,-5,2.1, False)
+            break
+        elif  d <50 or e <30:                                 #Se ele viu Preto
+            tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+            tank_drive.on_for_seconds(SpeedPercent(-25),SpeedPercent(-25), 0.8)
+            on_for_seconds(25,-5,2.1)
     
 def Sala_Resgate():
     # num_identifica_vermelho = 1
@@ -196,8 +216,14 @@ def Sala_Resgate():
     # else:
     #     return False
     while True:
-        c = sensor_cor.distance_centimeters_continuous
-        distancia = dist.distance_centimeters_continuous
+        c = sensor_cor.value()
+        distancia = dist.value()
+
+        lista_distancia_baixo.pop(0)
+        lista_distancia_cima.pop(0)
+        lista_distancia_baixo.append(c)
+        lista_distancia_cima.append(distancia)
+        
         on_for_seconds(15,-15,0.6)
         on_for_seconds(-15,15,1.47)
         on_for_seconds(15,-15,0.6)
@@ -248,6 +274,7 @@ num_amostras_seguemaior = 171        # Ao ver 2 pretos, quantas amostras são vi
 num_amostras_menor = 10              # Quantas amostas são necessárias para identificar se foi visto um verde
 num_amostras_segue = 1               # Quantas amostras são utilizadas para a execução do segue linha
 num_amostras_verde = 35              # Ao ver verde, quantas amostras são vistas antes para determinar se antes foi visto preto ou branco
+num_distancia = 40
 
 BrancoEq = 53                 # O que diferencia o Preto do Branco no Segue Linha para o sensor direito
 MediaPretoEq = 65             # Valor que diferencia Preto do Branco na média dos valores utilizados após ver dois pretos pelo sensor esquerdo
@@ -257,6 +284,8 @@ MediaPretoDr = 90             # Valor que diferencia Preto do Branco na média d
 # Listas ----------------------------------------------------------------
 lista_ultimasLeiturasEsquerda = []
 lista_ultimasLeiturasDireita = []
+lista_distancia_cima = num_distancia * [200]
+lista_distancia_baixo = num_distancia * [200]
 
 # Garra -----------------------------------------------------------------  Garra deve começar fechada e abaixada, na altura em que ela pega a vítima
 PosicaoGarraFechada = MotorGarra.position
@@ -269,6 +298,9 @@ PosicaoGarraAberta = MotorGarra.position
 PosicaoBraçoLevantado = MotorBraço.position
 MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraFechada) # Fechar a Garra
 x = 0
+my_sound = Sound()
+my_sound.play_file('sound2.wav')
+print('oi sdds')
 a = time.time() + 30000
 while a > time.time():
 # Programa principal ///////////////////////////////////////////////////////////////////////////////////////#
@@ -287,8 +319,9 @@ while a > time.time():
         lista_ultimasLeiturasEsquerda.pop(0)
         lista_ultimasLeiturasEsquerda.append(e)
         lista_ultimasLeiturasDireita.append(d)
-    distancia = dist.value()                            # Distância detectada pelo sensor ultrassom frontal
+    distancia = dist.distance_centimeters_continuous   # Distância detectada pelo sensor ultrassom frontal
     # distanciaesq = dist_esquerda.value()                # Distância detectada pelo sensor ultrassom esquerdo
+    c = sensor_cor.distance_centimeters_continuous
 
     media_direita = sum(lista_ultimasLeiturasDireita[-num_amostras_menor:])/num_amostras_menor
     media_esquerda = sum(lista_ultimasLeiturasEsquerda[-num_amostras_menor:])/num_amostras_menor
@@ -300,10 +333,12 @@ while a > time.time():
     # print("Media esquerda: ", media_esquerda, "Media direita: ", media_direita)
     # print("Distancia frente: ", distancia, "Distancia esquerda: ", distanciaesq)
 
+
     if (e == 0 and d == 0) or True:
         #tank_drive.on_for_seconds(SpeedPercent(20),SpeedPercent(20),50) 
-        Sala_Resgate()
+        #Sala_Resgate()
         tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+        print("Cima", distancia, "Baixo", c, file=sys.stderr)
     elif viu_verde2() :
         pass
     # elif Sala_Resgate():
