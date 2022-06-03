@@ -5,7 +5,7 @@ from ev3dev2.sensor.lego import *
 #from ev3dev.ev3 import *
 from ev3dev2.console import *
 from time import sleep
-from random import *
+import random
 import sys
 from ev3dev2.sound import Sound
 
@@ -162,18 +162,31 @@ def pegou_a_bolinha(): #Função feita para retornar a bolinha para a área de r
         lista_distancia_cima.append(distancia)
 
         tank_drive.on(SpeedPercent(30), SpeedPercent(30))
-        if sum(lista_distancia_cima)/num_distancia < 140: 
+        if distancia < 140: 
             tank_drive.on_for_seconds(SpeedPercent(25), SpeedPercent(-25),0.8)
 
-    tank_drive.on(SpeedPercent(0), SpeedPercent(0))        
+    tank_drive.on(SpeedPercent(0), SpeedPercent(0))      
+    tank_drive.on_for_seconds(SpeedPercent(25), SpeedPercent(25),0.7)
+    tank_drive.on(SpeedPercent(0), SpeedPercent(0))     
+    MotorBraço.on_for_seconds(SpeedPercent(20), tempo_braço/5) # Descendo o Braço
     MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraAberta) # Abrir a Garra 
-    time.sleep (0.5)   
+    time.sleep(0.3)
     MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraFechada) # Fechar a Garra 
-    time.sleep (0.5) 
+    MotorBraço.on_for_seconds(SpeedPercent(-20), tempo_braço/5) # Subindo o Braço
+    tank_drive.on(SpeedPercent(-25), SpeedPercent(-25))
+    tank_drive.on_for_seconds(SpeedPercent(-25), SpeedPercent(-25),1.8)
+    tank_drive.on_for_seconds(SpeedPercent(25), SpeedPercent(-25),0.8)
 
 
 
-def on_for_seconds(v1, v2, t, cond = True):  #Função implementada para fazer um on_for_seconds em que há a checagem durante o movimento. A condição 'cond' define se é necessária a checagem de paredes, que não é necessária na manobra do robô imediatamente depois de ver uma parede.
+def on_for_seconds(v1, v2, t, cond = True, random2 = False):  #Função implementada para fazer um on_for_seconds em que há a checagem durante o movimento. A condição 'cond' define se é necessária a checagem de paredes, que não é necessária na manobra do robô imediatamente depois de ver uma parede.
+    aux = 0
+    aux2 = 0
+    if random2:
+        if random.randint(0, 1):
+            aux = v1
+            v1 = v2
+            v2 = aux        
     tempo = time.time()+t
     while time.time() < tempo:
         tank_drive.on(SpeedPercent(v1), SpeedPercent(v2))
@@ -187,25 +200,32 @@ def on_for_seconds(v1, v2, t, cond = True):  #Função implementada para fazer u
         lista_distancia_baixo.append(c)
         lista_distancia_cima.append(distancia)
 
-        if sum(lista_distancia_baixo)/num_distancia < 50:                                                  #17:40          30 No AMbiente      35   Branco  
-            tank_drive.on(SpeedPercent(0), SpeedPercent(0))
-            pegar_objeto_posicao()
-            print(c)
-            c = sensor_cor.value()
-            if c > 50:
-                pegou_a_bolinha()
-            break
-        elif (sum(lista_distancia_cima)/num_distancia < 140 and cond):              #Girar se ver uma parede ou se ver o chão da sala
+        if (distancia < 140 and cond):              #Girar se ver uma parede ou se ver o chão da sala
             time.sleep(0.2)
             tank_drive.on(SpeedPercent(0), SpeedPercent(0))
             time.sleep(0.2)
             on_for_seconds(-25,-25,0.6, False)
-            on_for_seconds(25,-5,2.1, False)
+            on_for_seconds(25,-5,2.1, False, True)
             break
+        elif 230 < c < 350 or 900 < c < 2000 :                                                  #17:40          30 No AMbiente      35   Branco  
+            tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+            pegar_objeto_posicao()
+            print(c)
+            c = sensor_cor.value()
+            if c < 230:
+                pegou_a_bolinha()
+            else: 
+                while 230 < c < 350 or 900 < c < 2000:
+                    aux2 += 1
+                    if aux2 >= 4:
+                        tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+                        tank_drive.on_for_seconds(SpeedPercent(-25),SpeedPercent(-25), 0.8)
+            break
+        
         elif  d <50 or e <30:                                 #Se ele viu Preto
             tank_drive.on(SpeedPercent(0), SpeedPercent(0))
-            tank_drive.on_for_seconds(SpeedPercent(-25),SpeedPercent(-25), 0.8)
-            on_for_seconds(25,-5,2.1)
+            tank_drive.on_for_seconds(SpeedPercent(-25),SpeedPercent(-25), 1.6)
+            on_for_seconds(25,-5,2.1,True, True)
     
 def Sala_Resgate():
     # num_identifica_vermelho = 1
@@ -224,9 +244,9 @@ def Sala_Resgate():
         lista_distancia_baixo.append(c)
         lista_distancia_cima.append(distancia)
         
-        on_for_seconds(15,-15,0.6)
-        on_for_seconds(-15,15,1.47)
-        on_for_seconds(15,-15,0.6)
+        on_for_seconds(15,-15,0.9)
+        on_for_seconds(-15,15,1.8)
+        on_for_seconds(15,-15,0.9)
         on_for_seconds(20,20,2)
 
         # tank_drive.on_for_seconds(SpeedPercent(15), SpeedPercent(-15),0.6)
@@ -263,11 +283,13 @@ coloresquerdo = ColorSensor(INPUT_3)
 colordireito = ColorSensor(INPUT_4)
 MotorBraço = Motor(OUTPUT_A)
 tank_drive = MoveTank(OUTPUT_C, OUTPUT_B)  #C - Direita    B - Esquerda
-sensor_cor = UltrasonicSensor(INPUT_2)
+sensor_cor = Sensor(INPUT_2)
+
 
 # Parâmetros ------------------------------------------------------------
-tempo_braço = 0.8                    # Tempo de subida/descida do braço
-tempo_garra = 0.35                   # Tempo de abertura/fechamento da garra
+tempo_braço = 1                      #Tempo de subida da posição relaxada da garra para a posição abaixada
+tempo_braço2 = 0.8                   # Tempo de subida/descida do braço
+tempo_garra = 0.32                   # Tempo de abertura/fechamento da garra
 
 num_amostras = 250                  # Número total de amostras que são guardadas na lista
 num_amostras_seguemaior = 171        # Ao ver 2 pretos, quantas amostras são vistas antes para determinar se antes foi visto preto ou branco
@@ -289,9 +311,11 @@ lista_distancia_baixo = num_distancia * [200]
 
 # Garra -----------------------------------------------------------------  Garra deve começar fechada e abaixada, na altura em que ela pega a vítima
 PosicaoGarraFechada = MotorGarra.position
-PosicaoBraçoAbaixado = MotorBraço.position
+
 # Preparação ------------------------------------------------------------
-MotorBraço.on_for_seconds(SpeedPercent(-20), tempo_braço) # Subindo o Braço
+MotorBraço.on_for_seconds(SpeedPercent(-20), tempo_braço) # Subindo o Braço até a posição abaixada
+PosicaoBraçoAbaixado = MotorBraço.position
+MotorBraço.on_for_seconds(SpeedPercent(-20), tempo_braço) # Subindo o Braço mais ainda
 MotorGarra.on_for_seconds(SpeedPercent(15),tempo_garra) # Abrindo a Garra
 # time.sleep(1)
 PosicaoGarraAberta = MotorGarra.position
@@ -299,8 +323,33 @@ PosicaoBraçoLevantado = MotorBraço.position
 MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraFechada) # Fechar a Garra
 x = 0
 my_sound = Sound()
-my_sound.play_file('sound2.wav')
+# my_sound.play_file('sound2.wav')
+# my_sound.tone([
+#     (392, 350, 100), (392, 350, 100), (392, 350, 100), (311.1, 250, 100),
+#     (466.2, 25, 100), (392, 350, 100), (311.1, 250, 100), (466.2, 25, 100),
+#     (392, 700, 100), (587.32, 350, 100), (587.32, 350, 100),
+#     (587.32, 350, 100), (622.26, 250, 100), (466.2, 25, 100),
+#     (369.99, 350, 100), (311.1, 250, 100), (466.2, 25, 100), (392, 700, 100),
+#     (784, 350, 100), (392, 250, 100), (392, 25, 100), (784, 350, 100),
+#     (739.98, 250, 100), (698.46, 25, 100), (659.26, 25, 100),
+#     (622.26, 25, 100), (659.26, 50, 400), (415.3, 25, 200), (554.36, 350, 100),
+#     (523.25, 250, 100), (493.88, 25, 100), (466.16, 25, 100), (440, 25, 100),
+#     (466.16, 50, 400), (311.13, 25, 200), (369.99, 350, 100),
+#     (311.13, 250, 100), (392, 25, 100), (466.16, 350, 100), (392, 250, 100),
+#     (466.16, 25, 100), (587.32, 700, 100), (784, 350, 100), (392, 250, 100),
+#     (392, 25, 100), (784, 350, 100), (739.98, 250, 100), (698.46, 25, 100),
+#     (659.26, 25, 100), (622.26, 25, 100), (659.26, 50, 400), (415.3, 25, 200),
+#     (554.36, 350, 100), (523.25, 250, 100), (493.88, 25, 100),
+#     (466.16, 25, 100), (440, 25, 100), (466.16, 50, 400), (311.13, 25, 200),
+#     (392, 350, 100), (311.13, 250, 100), (466.16, 25, 100),
+#     (392.00, 300, 150), (311.13, 250, 100), (466.16, 25, 100), (392, 700)
+#     ])
 print('oi sdds')
+
+
+#while True:
+    #print(sensor_cor.value(),  file=sys.stderr)
+
 a = time.time() + 30000
 while a > time.time():
 # Programa principal ///////////////////////////////////////////////////////////////////////////////////////#
@@ -321,7 +370,6 @@ while a > time.time():
         lista_ultimasLeiturasDireita.append(d)
     distancia = dist.distance_centimeters_continuous   # Distância detectada pelo sensor ultrassom frontal
     # distanciaesq = dist_esquerda.value()                # Distância detectada pelo sensor ultrassom esquerdo
-    c = sensor_cor.distance_centimeters_continuous
 
     media_direita = sum(lista_ultimasLeiturasDireita[-num_amostras_menor:])/num_amostras_menor
     media_esquerda = sum(lista_ultimasLeiturasEsquerda[-num_amostras_menor:])/num_amostras_menor
@@ -336,7 +384,7 @@ while a > time.time():
 
     if (e == 0 and d == 0) or True:
         #tank_drive.on_for_seconds(SpeedPercent(20),SpeedPercent(20),50) 
-        #Sala_Resgate()
+        Sala_Resgate()
         tank_drive.on(SpeedPercent(0), SpeedPercent(0))
         print("Cima", distancia, "Baixo", c, file=sys.stderr)
     elif viu_verde2() :
