@@ -168,7 +168,7 @@ def pegou_a_bolinha(): #Função feita para retornar a bolinha para a área de r
 
 def on_for_seconds(v1, v2, t, cond = True, random2 = False):  #Função implementada para fazer um on_for_seconds em que há a checagem durante o movimento. A condição 'cond' define se é necessária a checagem de paredes, que não é necessária na manobra do robô imediatamente depois de ver uma parede.
     aux = 0
-    aux2 = 0
+    tentativaPegarBolinha = 0
     if random2:
         if random.randint(0, 1):
             aux = v1
@@ -194,7 +194,11 @@ def on_for_seconds(v1, v2, t, cond = True, random2 = False):  #Função implemen
             on_for_seconds(-25,-25,0.6, False)
             on_for_seconds(25,-5,2.1, False, True)
             break
-        elif 230 < c < 350 or 900 < c < 2000 :                                                  #17:40          30 No AMbiente      35   Branco  
+
+
+        #AQUI ELE ESTÁ IDENTIFICANDO QUALQUER BOLA PARA PEGAR, IMPLEMENTAR A LÓGICA DE ESCOLHER
+        #PRIMEIRO AS BOLINHAS BRANCAS
+        elif 230 < c < 350 or 1050 < c < 2000 :                                                  #17:40          30 No AMbiente      35   Branco  
             tank_drive.on(SpeedPercent(0), SpeedPercent(0))
             pegar_objeto_posicao()
             print(c)
@@ -203,10 +207,10 @@ def on_for_seconds(v1, v2, t, cond = True, random2 = False):  #Função implemen
                 pegou_a_bolinha()
             else: 
                 while 230 < c < 350 or 1050 < c < 2000:
-                    aux2 += 1
-                    pegou_a_bolinha()
+                    tentativaPegarBolinha += 1
+                    pegar_objeto_posicao()
                     c = sensor_cor.value()
-                    if aux2 >= 4:
+                    if tentativaPegarBolinha >= 4:
                         tank_drive.on(SpeedPercent(0), SpeedPercent(0))
                         tank_drive.on_for_seconds(SpeedPercent(-25),SpeedPercent(-25), 0.8)
             break
