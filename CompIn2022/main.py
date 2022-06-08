@@ -8,7 +8,6 @@ from time import sleep
 import random
 import sys
 from ev3dev2.sound import Sound
-import statistics
 
 
 # Olhando de Frente, o eixo da direita deve estar em cima do eixo da esquerda quando a garra astá fechada. 
@@ -151,15 +150,9 @@ def pegou_a_bolinha(): #Função feita para retornar a bolinha para a área de r
         lista_distancia_cima.pop(0)
         lista_distancia_cima.append(distancia)
 
-        #variancia = sum((item-((sum(lista_distancia_baixo))/(len(lista_distancia_baixo))))**2 for item in lista_distancia_baixo) / len(lista_distancia_baixo)
-        variancia =statistics.variance(lista_distancia_baixo)
-
         tank_drive.on(SpeedPercent(30), SpeedPercent(30))
         if distancia < 140: 
-            tank_drive.on_for_seconds(SpeedPercent(25), SpeedPercent(-25),0.9)
-        elif variancia < 2:
-            print(variancia, file=sys.stderr)
-            tank_drive.on_for_seconds(SpeedPercent(-50),SpeedPercent(-50), 0.8)
+            tank_drive.on_for_seconds(SpeedPercent(25), SpeedPercent(-25),0.8)
 
     tank_drive.on(SpeedPercent(0), SpeedPercent(0))      
     tank_drive.on_for_seconds(SpeedPercent(25), SpeedPercent(25),0.6)
@@ -194,9 +187,6 @@ def on_for_seconds(v1, v2, t, cond = True, random2 = False):  #Função implemen
         lista_distancia_baixo.append(c)
         lista_distancia_cima.append(distancia)
 
-        variancia =statistics.variance(lista_distancia_baixo)
-        print(variancia, file=sys.stderr)
-
         if (distancia < 140 and cond):              #Girar se ver uma parede ou se ver o chão da sala
             time.sleep(0.2)
             tank_drive.on(SpeedPercent(0), SpeedPercent(0))
@@ -225,9 +215,6 @@ def on_for_seconds(v1, v2, t, cond = True, random2 = False):  #Função implemen
             tank_drive.on(SpeedPercent(0), SpeedPercent(0))
             tank_drive.on_for_seconds(SpeedPercent(-25),SpeedPercent(-25), 1.6)
             on_for_seconds(25,-5,2.1,True, True)
-        elif variancia < 2:
-            print(variancia, file=sys.stderr)
-            tank_drive.on_for_seconds(SpeedPercent(-50),SpeedPercent(-50), 0.8)
     
 def Sala_Resgate():
 
@@ -288,11 +275,8 @@ MediaPretoDr = 90             # Valor que diferencia Preto do Branco na média d
 # Listas ----------------------------------------------------------------
 lista_ultimasLeiturasEsquerda = []
 lista_ultimasLeiturasDireita = []
-lista_distancia_cima = num_distancia * [199]
+lista_distancia_cima = num_distancia * [200]
 lista_distancia_baixo = num_distancia * [200]
-lista_distancia_cima.append(100000000000) # Adicionando um valor muito grande para obter uma variância inicial muito grande
-print(sys.version)
-#print(numpy.std(lista_distancia_baixo))
 
 # Garra -----------------------------------------------------------------  Garra deve começar fechada e abaixada, na altura em que ela pega a vítima
 PosicaoGarraFechada = MotorGarra.position
@@ -342,7 +326,7 @@ while a > time.time():
         tank_drive.on(SpeedPercent(0), SpeedPercent(0))
 
     
-    elif True:
+    elif False:
         Sala_Resgate()
         c = sensor_cor.value()
         distancia = dist.value()
