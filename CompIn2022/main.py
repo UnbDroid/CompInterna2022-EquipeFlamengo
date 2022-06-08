@@ -108,10 +108,9 @@ def Obstaculo():
     e = coloresquerdo.value()
     d = colordireito.value()
     # Virando -------------------------------------------------------------
-    tank_drive.on(SpeedPercent(-25), SpeedPercent(25))
-    time.sleep(0.7)
+    tank_drive.on_for_seconds(SpeedPercent(30), SpeedPercent(0), 1.5)
     # Andando ate ver -----------------------------------------------------
-    tempo = time.time() + 1.5
+    tempo = time.time() + 1.4
     while e > 40 and d > 40 and tempo > time.time():
         e = coloresquerdo.value()
         d = colordireito.value()
@@ -119,8 +118,7 @@ def Obstaculo():
     if e < 40 or d < 40:
         return
     # Virando --------------------------------------------------------------
-    tank_drive.on(SpeedPercent(25), SpeedPercent(-25))
-    time.sleep(0.75)
+    tank_drive.on_for_seconds(SpeedPercent(0), SpeedPercent(30), 1.4)
     # Andando ate ver ------------------------------------------------------
     tempo = time.time() + 3
     while e > 40 and d > 40 and tempo > time.time():
@@ -130,13 +128,13 @@ def Obstaculo():
     if e < 40 or d < 40:
         return
     # Virando -------------------------------------------------------------
-    tank_drive.on(SpeedPercent(25), SpeedPercent(-25))
-    time.sleep(0.75)
+    tank_drive.on_for_seconds(SpeedPercent(0), SpeedPercent(30), 1.5)
     # Andando ate ver -----------------------------------------------------
     while e > 40 and d > 40:
         e = coloresquerdo.value()
         d = colordireito.value()
-        tank_drive.on(SpeedPercent(25), SpeedPercent(25))
+        tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+        return
 
 def pegou_a_bolinha(): #Função feita para retornar a bolinha para a área de resgate depois de pegá-la
     distancia = dist.value()
@@ -244,6 +242,27 @@ def Sala_Resgate():
         on_for_seconds(15,-15,0.9)
         on_for_seconds(20,20,2)
 
+def observando_valores():
+    if time.time() > tempo_do_print:
+        e = coloresquerdo.value()
+        d = colordireito.value()
+        distancia = dist.value()
+        c = sensor_cor.value()
+        print("          Valores frontais:", file=sys.stderr)
+        print("-------------------------------------", file=sys.stderr)
+        print("Sensor Ultrassom: ", distancia, file=sys.stderr)
+        print("Sensor de cor:    ", c, file=sys.stderr)
+        print("-------------------------------------", file=sys.stderr)
+        print(" ", file=sys.stderr)
+        print("   Valores de cor do segue linha:", file=sys.stderr)
+        print("-------------------------------------", file=sys.stderr)
+        print("Esquerda: ", e, file=sys.stderr)
+        print("Direita:  ", d, file=sys.stderr)
+        print("-------------------------------------", file=sys.stderr)
+        print(" ", file=sys.stderr)
+        print(" ", file=sys.stderr)
+        tempo_do_print = time.time() + 1
+
 #///////////////////////////////////////////////////////////////////////////////////////////////////////////#
 
 
@@ -295,6 +314,7 @@ PosicaoGarraAberta = MotorGarra.position
 PosicaoBraçoLevantado = MotorBraço.position
 MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraFechada) # Fechar a Garra
 x = 0
+time.sleep(1)
 
 #///////////////////////////////////////////////////////////////////////////////////////////////////////////#
 
@@ -302,6 +322,7 @@ x = 0
 # Programa principal ///////////////////////////////////////////////////////////////////////////////////////#
 
 a = time.time() + 300
+tempo_do_print = time.time() + 1
 
 while a > time.time():
 
@@ -318,14 +339,14 @@ while a > time.time():
         lista_ultimasLeiturasEsquerda.pop(0)
         lista_ultimasLeiturasEsquerda.append(e)
         lista_ultimasLeiturasDireita.append(d)
-    distancia = dist.distance_centimeters_continuous
-
+    distancia = dist.value()
+    
     media_direita = sum(lista_ultimasLeiturasDireita[-num_amostras_menor:])/num_amostras_menor
     media_esquerda = sum(lista_ultimasLeiturasEsquerda[-num_amostras_menor:])/num_amostras_menor
     media_direita2 = sum(lista_ultimasLeiturasDireita[-num_amostras_seguemaior:])/num_amostras_seguemaior
     media_esquerda2 = sum(lista_ultimasLeiturasEsquerda[-num_amostras_seguemaior:])/num_amostras_seguemaior
     #----------------------------------------------------------------------------
-
+    
     if (e == 0 and d == 0):
         tank_drive.on(SpeedPercent(0), SpeedPercent(0))
 
@@ -340,12 +361,14 @@ while a > time.time():
     elif viu_verde2() :
         pass
 
-    # elif distancia <135:    #Se foi visto um obstáculo
-    #     tank_drive.on(SpeedPercent(0), SpeedPercent(0))
-    #     Obstaculo()
+    elif distancia < 120:    #Se foi visto um obstáculo
+        tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+        print("Obstaculo!", distancia, file=sys.stderr)
+        Obstaculo()
 
     else:
         Segue_linha()
+        
 
 print("----------------------------")
 print("-   Expediente encerrado   -")
