@@ -8,6 +8,7 @@ from time import sleep
 import random
 import sys
 from ev3dev2.sound import Sound
+import statistics
 
 
 # Olhando de Frente, o eixo da direita deve estar em cima do eixo da esquerda quando a garra astá fechada. 
@@ -15,6 +16,8 @@ from ev3dev2.sound import Sound
 # Fechar a Garra  0.5 Ideal
 
 # Funções ///////////////////////////////////////////////////////////////////////////////////////////////////#
+
+sobreviventesResgatados =0
 
 def Segue_linha():
 
@@ -149,10 +152,15 @@ def pegou_a_bolinha(): #Função feita para retornar a bolinha para a área de r
 
         lista_distancia_cima.pop(0)
         lista_distancia_cima.append(distancia)
+        variancia =statistics.variance(lista_distancia_baixo)
 
         tank_drive.on(SpeedPercent(30), SpeedPercent(30))
         if distancia < 140: 
             tank_drive.on_for_seconds(SpeedPercent(25), SpeedPercent(-25),0.8)
+        # elif variancia < 2:
+        #     print(variancia, file=sys.stderr)
+        #     tank_drive.on_for_seconds(SpeedPercent(-50),SpeedPercent(-50), 0.8)
+
 
     tank_drive.on(SpeedPercent(0), SpeedPercent(0))      
     tank_drive.on_for_seconds(SpeedPercent(25), SpeedPercent(25),0.6)
@@ -168,7 +176,10 @@ def pegou_a_bolinha(): #Função feita para retornar a bolinha para a área de r
 
 def on_for_seconds(v1, v2, t, cond = True, random2 = False):  #Função implementada para fazer um on_for_seconds em que há a checagem durante o movimento. A condição 'cond' define se é necessária a checagem de paredes, que não é necessária na manobra do robô imediatamente depois de ver uma parede.
     aux = 0
+    
     tentativaPegarBolinha = 0
+    global sobreviventesResgatados
+    
     if random2:
         if random.randint(0, 1):
             aux = v1
@@ -187,6 +198,75 @@ def on_for_seconds(v1, v2, t, cond = True, random2 = False):  #Função implemen
         lista_distancia_baixo.append(c)
         lista_distancia_cima.append(distancia)
 
+        variancia =statistics.variance(lista_distancia_baixo)
+        print(variancia, file=sys.stderr)
+        print(sobreviventesResgatados, file=sys.stderr)
+        
+
+
+        #AQUI ELE ESTÁ IDENTIFICANDO QUALQUER BOLA PARA PEGAR, IMPLEMENTAR A LÓGICA DE ESCOLHER
+        #PRIMEIRO AS BOLINHAS BRANCAS
+        if sobreviventesResgatados<2:
+            if 1050<c<1800:
+                tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+                pegar_objeto_posicao()
+                c = sensor_cor.value()
+                if c < 230:
+                    pegou_a_bolinha()
+                    sobreviventesResgatados+=1
+                else: 
+                    while 1050 < c < 1800:
+                        pegar_objeto_posicao()
+                        c = sensor_cor.value()
+                        if c < 230:
+                            pegou_a_bolinha()
+                            sobreviventesResgatados+=1
+                            tentativaPegarBolinha += 1
+                            break
+                        if tentativaPegarBolinha >= 4:
+                            tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+                            tank_drive.on_for_seconds(SpeedPercent(-25),SpeedPercent(-25), 0.8)
+
+        elif sobreviventesResgatados==2:
+             if 230<c<350:
+                tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+                pegar_objeto_posicao()
+                c = sensor_cor.value()
+                if c < 230:
+                    pegou_a_bolinha()
+                    sobreviventesResgatados+=1
+                else: 
+                    while 230 < c < 350:
+                        pegar_objeto_posicao()
+                        c = sensor_cor.value()
+                        if c < 230:
+                            pegou_a_bolinha()
+                            sobreviventesResgatados+=1
+                            tentativaPegarBolinha += 1
+                            break
+                        if tentativaPegarBolinha >= 4:
+                            tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+                            tank_drive.on_for_seconds(SpeedPercent(-25),SpeedPercent(-25), 0.8)
+
+        elif sobreviventesResgatados>2:
+            print("sai da salaaaaaaaaaaaaaaaaaaaaaa", file=sys.stderr)
+        # elif 230 < c < 350 or 1050 < c < 2000 :                                                  #17:40          30 No AMbiente      35   Branco  
+        #     tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+            # pegar_objeto_posicao()
+            # print(c)
+            # c = sensor_cor.value()
+            # if c < 230:
+            #     pegou_a_bolinha()
+            # else: 
+            #     while 230 < c < 350 or 1050 < c < 2000:
+            #         tentativaPegarBolinha += 1
+            #         pegar_objeto_posicao()
+            #         c = sensor_cor.value()
+            #         if tentativaPegarBolinha >= 4:
+            #             tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+            #             tank_drive.on_for_seconds(SpeedPercent(-25),SpeedPercent(-25), 0.8)
+            # break
+        
         if (distancia < 140 and cond):              #Girar se ver uma parede ou se ver o chão da sala
             time.sleep(0.2)
             tank_drive.on(SpeedPercent(0), SpeedPercent(0))
@@ -195,31 +275,13 @@ def on_for_seconds(v1, v2, t, cond = True, random2 = False):  #Função implemen
             on_for_seconds(25,-5,2.1, False, True)
             break
 
-
-        #AQUI ELE ESTÁ IDENTIFICANDO QUALQUER BOLA PARA PEGAR, IMPLEMENTAR A LÓGICA DE ESCOLHER
-        #PRIMEIRO AS BOLINHAS BRANCAS
-        elif 230 < c < 350 or 1050 < c < 2000 :                                                  #17:40          30 No AMbiente      35   Branco  
-            tank_drive.on(SpeedPercent(0), SpeedPercent(0))
-            pegar_objeto_posicao()
-            print(c)
-            c = sensor_cor.value()
-            if c < 230:
-                pegou_a_bolinha()
-            else: 
-                while 230 < c < 350 or 1050 < c < 2000:
-                    tentativaPegarBolinha += 1
-                    pegar_objeto_posicao()
-                    c = sensor_cor.value()
-                    if tentativaPegarBolinha >= 4:
-                        tank_drive.on(SpeedPercent(0), SpeedPercent(0))
-                        tank_drive.on_for_seconds(SpeedPercent(-25),SpeedPercent(-25), 0.8)
-            break
-        
         elif  d <50 or e <30:                                 #Se ele viu Preto
             tank_drive.on(SpeedPercent(0), SpeedPercent(0))
             tank_drive.on_for_seconds(SpeedPercent(-25),SpeedPercent(-25), 1.6)
             on_for_seconds(25,-5,2.1,True, True)
-    
+        # elif variancia < 2:
+        #     print(variancia, file=sys.stderr)
+        #     tank_drive.on_for_seconds(SpeedPercent(-50),SpeedPercent(-50), 0.8)
 def Sala_Resgate():
 
     # num_identifica_vermelho = 3
@@ -229,7 +291,6 @@ def Sala_Resgate():
     #     return True
     # else:
     #     return False
-
     while True:
         c = sensor_cor.value()
         distancia = dist.value()
@@ -239,10 +300,10 @@ def Sala_Resgate():
         lista_distancia_baixo.append(c)
         lista_distancia_cima.append(distancia)
         
-        on_for_seconds(15,-15,0.9)
+        on_for_seconds(15,-15, 0.9)
         on_for_seconds(-15,15,1.8)
         on_for_seconds(15,-15,0.9)
-        on_for_seconds(20,20,2)
+        on_for_seconds(25,25,1.8)
 
 #///////////////////////////////////////////////////////////////////////////////////////////////////////////#
 
@@ -276,6 +337,8 @@ MediaPretoEq = 65             # Valor que diferencia Preto do Branco na média d
 BrancoDr = 70                 # O que diferencia o Preto do Branco no Segue Linha para o sensor esquerdo
 MediaPretoDr = 90             # Valor que diferencia Preto do Branco na média dos valores utilizados após ver dois pretos pelo sensor direito
 
+
+sobreviventesResgatados =0
 # Listas ----------------------------------------------------------------
 lista_ultimasLeiturasEsquerda = []
 lista_ultimasLeiturasDireita = []
@@ -330,7 +393,7 @@ while a > time.time():
         tank_drive.on(SpeedPercent(0), SpeedPercent(0))
 
     
-    elif False:
+    elif True:
         Sala_Resgate()
         c = sensor_cor.value()
         distancia = dist.value()
