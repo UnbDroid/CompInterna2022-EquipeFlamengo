@@ -27,9 +27,9 @@ def Segue_linha():
     media_direita_linha = sum(lista_ultimasLeiturasDireita[-num_amostras_segue:])/num_amostras_segue
     media_esquerda_linha = sum(lista_ultimasLeiturasEsquerda[-num_amostras_segue:])/num_amostras_segue
     if media_esquerda_linha > BrancoEq and media_direita_linha <= BrancoDr:   # Branco na esquerda e Preto na direita
-        tank_drive.on(SpeedPercent(-17),SpeedPercent(45))                        # Virar pra Direita
+        tank_drive.on(SpeedPercent(-12),SpeedPercent(45))                        # Virar pra Direita
     elif media_esquerda_linha <= BrancoEq and media_direita_linha > BrancoDr: # Preto na esquerda e Branco na direita
-        tank_drive.on(SpeedPercent(45),SpeedPercent(-17))                       # Virar pra Esquerda
+        tank_drive.on(SpeedPercent(45),SpeedPercent(-12))                       # Virar pra Esquerda
     elif media_esquerda_linha > BrancoEq and media_direita_linha > BrancoDr:  # Branco na esquerda e na Direita
         tank_drive.on(SpeedPercent(20), SpeedPercent(20))                       # Seguir Reto
     else:
@@ -143,7 +143,7 @@ def Obstaculo():
     e = coloresquerdo.value()
     d = colordireito.value()
     # Virando -------------------------------------------------------------
-    tank_drive.on_for_seconds(SpeedPercent(30), SpeedPercent(0), 1.5)
+    tank_drive.on_for_seconds(SpeedPercent(30), SpeedPercent(0), 1.4)
     # Andando ate ver -----------------------------------------------------
     tempo = time.time() + 1.4
     while e > 40 and d > 40 and tempo > time.time():
@@ -163,12 +163,14 @@ def Obstaculo():
     if e < 40 or d < 40:
         return
     # Virando -------------------------------------------------------------
-    tank_drive.on_for_seconds(SpeedPercent(0), SpeedPercent(30), 1.5)
+    tank_drive.on_for_seconds(SpeedPercent(0), SpeedPercent(30), 1.2)
     # Andando ate ver -----------------------------------------------------
-    while e > 40 and d > 40:
+    while not e < 20:
         e = coloresquerdo.value()
         d = colordireito.value()
         tank_drive.on(SpeedPercent(20), SpeedPercent(20))
+    while not e > 40 and d > 40:
+        tank_drive.on(SpeedPercent(5), SpeedPercent(-5))
         return
 
 def pegou_a_bolinha(): #Função feita para retornar a bolinha para a área de resgate depois de pegá-la
@@ -335,7 +337,7 @@ def Sala_Resgate():
         on_for_seconds(15,-15, 0.9)
         on_for_seconds(-15,15,1.8)
         on_for_seconds(15,-15,0.9)
-        on_for_seconds(25,25,1.8)
+        on_for_seconds(20,20,1.8)
 
 #///////////////////////////////////////////////////////////////////////////////////////////////////////////#
 
@@ -356,7 +358,7 @@ sensor_cor = Sensor(INPUT_2)
 # Parâmetros ------------------------------------------------------------
 tempo_braço = 1                      #Tempo de subida da posição relaxada da garra para a posição abaixada
 tempo_braço2 = 0.8                   # Tempo de subida/descida do braço
-tempo_garra = 0.3                   # Tempo de abertura/fechamento da garra
+tempo_garra = 0.33                   # Tempo de abertura/fechamento da garra
 
 num_amostras = 250                  # Número total de amostras que são guardadas na lista
 num_amostras_seguemaior = 150        # Ao ver 2 pretos, quantas amostras são vistas antes para determinar se antes foi visto preto ou branco
@@ -368,7 +370,7 @@ num_distancia = 40
 BrancoEq = 53                 # O que diferencia o Preto do Branco no Segue Linha para o sensor direito
 MediaPretoEq = 70 #69             # Valor que diferencia Preto do Branco na média dos valores utilizados após ver dois pretos pelo sensor esquerdo
 BrancoDr = 70                 # O que diferencia o Preto do Branco no Segue Linha para o sensor esquerdo
-MediaPretoDr = 91.1           # Valor que diferencia Preto do Branco na média dos valores utilizados após ver dois pretos pelo sensor direito
+MediaPretoDr = 90.5           # Valor que diferencia Preto do Branco na média dos valores utilizados após ver dois pretos pelo sensor direito
 
 
 
@@ -442,9 +444,9 @@ while a > time.time():
     elif viu_verde2() :
         pass
 
-    # elif distancia < 120:    #Se foi visto um obstáculo
-    #     tank_drive.on(SpeedPercent(0), SpeedPercent(0))
-    #     Obstaculo()
+    elif distancia < 130:    #Se foi visto um obstáculo
+        tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+        Obstaculo()
 
     else:
         Segue_linha()
