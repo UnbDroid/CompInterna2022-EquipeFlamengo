@@ -27,9 +27,9 @@ def Segue_linha():
     media_direita_linha = sum(lista_ultimasLeiturasDireita[-num_amostras_segue:])/num_amostras_segue
     media_esquerda_linha = sum(lista_ultimasLeiturasEsquerda[-num_amostras_segue:])/num_amostras_segue
     if media_esquerda_linha > BrancoEq and media_direita_linha <= BrancoDr:   # Branco na esquerda e Preto na direita
-        tank_drive.on(SpeedPercent(-12),SpeedPercent(45))                        # Virar pra Direita
+        tank_drive.on(SpeedPercent(-17),SpeedPercent(45))                        # Virar pra Direita
     elif media_esquerda_linha <= BrancoEq and media_direita_linha > BrancoDr: # Preto na esquerda e Branco na direita
-        tank_drive.on(SpeedPercent(45),SpeedPercent(-12))                       # Virar pra Esquerda
+        tank_drive.on(SpeedPercent(45),SpeedPercent(-17))                       # Virar pra Esquerda
     elif media_esquerda_linha > BrancoEq and media_direita_linha > BrancoDr:  # Branco na esquerda e na Direita
         tank_drive.on(SpeedPercent(20), SpeedPercent(20))                       # Seguir Reto
     else:
@@ -48,7 +48,7 @@ def Segue_linha():
             d = colordireito.value()  
             tank_drive.on_for_seconds(SpeedPercent(-25),SpeedPercent(45),0.5)                     # Virar pra Direita
         else:                                                                   # Branco antes em ambos
-            tank_drive.on(SpeedPercent(30), SpeedPercent(30))                       # Andar reto
+            tank_drive.on(SpeedPercent(35), SpeedPercent(35))                       # Andar reto
 
 def viu_verde():
 
@@ -73,22 +73,35 @@ def viu_verde():
         return False                                                                                # Não foi visto verde
 
 def viu_verde2():
-    verde_dr = 8
-    verde_eq = 5
-    num_identifica_verde = 2
+    verde_dr = [7,8,9]
+    verde_eq = [4,5]
+    num_identifica_verde = 5
     media_direita_verde = sum(lista_ultimasLeiturasDireita[-num_amostras_verde:])/num_amostras_verde
     media_esquerda_verde = sum(lista_ultimasLeiturasEsquerda[-num_amostras_verde:])/num_amostras_verde
-    if lista_ultimasLeiturasDireita[-num_identifica_verde:] == [verde_dr]*num_identifica_verde:      # Foi visto verde pelo sensor direito
-        print("Direita Verde1", media_direita_verde, "Esquerda Verde1", media_esquerda_verde, file=sys.stderr) 
+    #if lista_ultimasLeiturasDireita[-num_identifica_verde:] == [verde_dr]*num_identifica_verde:      # Foi visto verde pelo sensor direito
+    contador_dr = 0
+    contador_eq = 0
+    for i in lista_ultimasLeiturasDireita[-num_identifica_verde:]:
+        if i in verde_dr:
+            contador_dr +=1
+        else:
+            break
+    for j in lista_ultimasLeiturasEsquerda[-num_identifica_verde:]:
+        if j in verde_eq:
+            contador_eq +=1
+        else:
+            break
+    if contador_dr == num_identifica_verde:
+        print("Direita Verde1", media_direita_verde, "Esquerda Verde1", media_esquerda_verde, "Lista", lista_ultimasLeiturasDireita[-num_identifica_verde:], file=sys.stderr) 
         tank_drive.on_for_seconds(SpeedPercent(0), SpeedPercent(0),0.01)
         time.sleep(0.01)
         spkr.tone([(450, 350, 30)])
-        if media_esquerda_verde < 60:   # 35 amostras - dividindo em 35 se mostrou eficiente
+        if media_direita_verde < 75 and media_esquerda_verde < 65: # Esse 61 é totalmente arbitrário, ainda n testei:   # 35 amostras - dividindo em 35 se mostrou eficiente
         #Se antes do verde foi visto preto
             e = coloresquerdo.value()              
             d = colordireito.value() 
             while not (e > BrancoEq and d > BrancoDr):
-                tank_drive.on(SpeedPercent(15), SpeedPercent(10))
+                tank_drive.on(SpeedPercent(11), SpeedPercent(10))
                 e = coloresquerdo.value()              
                 d = colordireito.value()   
         else:
@@ -96,16 +109,17 @@ def viu_verde2():
             tank_drive.on_for_seconds(SpeedPercent(10), SpeedPercent(35),0.8)  # (Virar para a direita) 1.4 segundos e (5; 35) é ideal
         return True
 
-    elif lista_ultimasLeiturasEsquerda[-num_identifica_verde:] == [verde_eq]*num_identifica_verde:    # Foi visto verde pelo sensor esquerdo
-        print("Direita Verde2", media_direita_verde, "Esquerda Verde2", media_esquerda_verde, file=sys.stderr)
+    #elif lista_ultimasLeiturasEsquerda[-num_identifica_verde:] == [verde_eq]*num_identifica_verde:    # Foi visto verde pelo sensor esquerdo
+    elif contador_eq == num_identifica_verde:
+        print("Direita Verde2", media_direita_verde, "Esquerda Verde2", media_esquerda_verde, "Lista", lista_ultimasLeiturasEsquerda[-num_identifica_verde:],  file=sys.stderr)
         tank_drive.on_for_seconds(SpeedPercent(0), SpeedPercent(0),0.01)
         time.sleep(0.01)
         spkr.tone([(300, 350, 30)])
-        if media_direita_verde < 85:   #Se antes do verde foi visto preto
+        if media_direita_verde < 85 and media_esquerda_verde < 65:   #Se antes do verde foi visto preto
             e = coloresquerdo.value()              
             d = colordireito.value() 
             while not (e > BrancoEq and d > BrancoDr):
-                tank_drive.on(SpeedPercent(10), SpeedPercent(15))
+                tank_drive.on(SpeedPercent(10), SpeedPercent(11))
                 e = coloresquerdo.value()              
                 d = colordireito.value()   
         else:
@@ -352,9 +366,9 @@ num_amostras_verde = 35              # Ao ver verde, quantas amostras são vista
 num_distancia = 40
 
 BrancoEq = 53                 # O que diferencia o Preto do Branco no Segue Linha para o sensor direito
-MediaPretoEq = 69             # Valor que diferencia Preto do Branco na média dos valores utilizados após ver dois pretos pelo sensor esquerdo
+MediaPretoEq = 70 #69             # Valor que diferencia Preto do Branco na média dos valores utilizados após ver dois pretos pelo sensor esquerdo
 BrancoDr = 70                 # O que diferencia o Preto do Branco no Segue Linha para o sensor esquerdo
-MediaPretoDr = 89.7             # Valor que diferencia Preto do Branco na média dos valores utilizados após ver dois pretos pelo sensor direito
+MediaPretoDr = 91.1           # Valor que diferencia Preto do Branco na média dos valores utilizados após ver dois pretos pelo sensor direito
 
 
 
@@ -396,6 +410,8 @@ while a > time.time():
     e = coloresquerdo.value()  #Valores Lidos :Branco 73-77, Preto 6-8, Verde 4, Verm 42, Azul 5         
     d = colordireito.value()   #Valores Lidos :Branco 100, Preto 11, Verde 6-7,  Verm 72, Azul 8
     x+=1
+    #print("Direita Verde3", d, "Esquerda Verde3", e, file=sys.stderr)
+    
 
     if len(lista_ultimasLeiturasDireita) < num_amostras:  # Mantendo o tamanho da lista em no máximo 'num_amostras' valores
         lista_ultimasLeiturasEsquerda.append(e)
