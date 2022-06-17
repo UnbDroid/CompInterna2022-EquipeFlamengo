@@ -74,7 +74,7 @@ def viu_verde():
 
 def viu_verde2():
     verde_dr = [7,8,9]
-    verde_eq = [4,5]
+    verde_eq = [3,4,5,6]
     num_identifica_verde = 5
     media_direita_verde = sum(lista_ultimasLeiturasDireita[-num_amostras_verde:])/num_amostras_verde
     media_esquerda_verde = sum(lista_ultimasLeiturasEsquerda[-num_amostras_verde:])/num_amostras_verde
@@ -115,11 +115,11 @@ def viu_verde2():
         tank_drive.on_for_seconds(SpeedPercent(0), SpeedPercent(0),0.01)
         time.sleep(0.01)
         spkr.tone([(300, 350, 30)])
-        if media_direita_verde < 85 and media_esquerda_verde < 65:   #Se antes do verde foi visto preto
-            e = coloresquerdo.value()              
+        if media_direita_verde < 82 and media_esquerda_verde < 60:   #Se antes do verde foi visto preto
+            e = coloresquerdo.value()       
             d = colordireito.value() 
             while not (e > BrancoEq and d > BrancoDr):
-                tank_drive.on(SpeedPercent(10), SpeedPercent(11))
+                tank_drive.on(SpeedPercent(10), SpeedPercent(14))
                 e = coloresquerdo.value()              
                 d = colordireito.value()   
         else:
@@ -128,6 +128,28 @@ def viu_verde2():
         return True
     else:
         return False #Não foi visto verde
+
+def viu_vermelho():
+    vermelho_eq = [52,53,54,55,56,57]
+    vermelho_dr = [71,72,73,74,75]
+    num_identifica_vermelho = 3
+    contador_dr = 0
+    contador_eq = 0
+    for i in lista_ultimasLeiturasDireita[-num_identifica_vermelho:]:
+        if i in vermelho_dr:
+            contador_dr +=1
+        else:
+            break
+    for j in lista_ultimasLeiturasEsquerda[-num_identifica_vermelho:]:
+        if j in vermelho_eq:
+            contador_eq +=1
+        else:
+            break
+    
+    if contador_dr == num_identifica_vermelho and contador_eq == num_identifica_vermelho:
+        return True
+    else: 
+        return False
 
 def pegar_objeto_posicao():
     MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraAberta) # Abrir a Garra 
@@ -155,7 +177,7 @@ def Obstaculo():
     # Virando --------------------------------------------------------------
     tank_drive.on_for_seconds(SpeedPercent(0), SpeedPercent(30), 1.4)
     # Andando ate ver ------------------------------------------------------
-    tempo = time.time() + 3
+    tempo = time.time() + 3.3
     while e > 40 and d > 40 and tempo > time.time():
         e = coloresquerdo.value()
         d = colordireito.value()
@@ -177,7 +199,7 @@ def pegou_a_bolinha(): #Função feita para retornar a bolinha para a área de r
     distancia = dist.value()
     d = colordireito.value()
     e = coloresquerdo.value()
-    while not ( (4<= e <= 40) and (4 <= d <= 40)):
+    while not ( (5 <= e <= 15) or (10 <= d <= 20)):     #Se foi visto preto por algum dos sensores
         distancia = dist.value()
         d = colordireito.value()
         e = coloresquerdo.value()
@@ -189,14 +211,29 @@ def pegou_a_bolinha(): #Função feita para retornar a bolinha para a área de r
 
         tank_drive.on(SpeedPercent(30), SpeedPercent(30))
         if distancia < 140: 
-            tank_drive.on_for_seconds(SpeedPercent(-25), SpeedPercent(-25),0.65)
-            tank_drive.on_for_seconds(SpeedPercent(25), SpeedPercent(-25),0.95)
+            #tank_drive.on_for_seconds(SpeedPercent(-25), SpeedPercent(-25),0.65)
+            while not distancia > 140:
+                distancia = dist.value()
+                tank_drive.on(SpeedPercent(-25), SpeedPercent(-25))
+            tank_drive.on_for_seconds(SpeedPercent(25), SpeedPercent(-25),0.9)
 
         elif variancia < 2:
             print(variancia, file=sys.stderr)
             tank_drive.on_for_seconds(SpeedPercent(-50),SpeedPercent(-50), 1.6)
 
+    if ((4 <= e <= 40) and not (4 <= d <= 40)):     #Se foi visto preto apenas no sensor esquerdo, girar pra direita até ver preto nos dois
+        while not ( (4<= e <= 40) and (4 <= d <= 40)):
+            e = coloresquerdo.value()
+            d = colordireito.value()
+            tank_drive.on(SpeedPercent(45), SpeedPercent(-25))
 
+    elif (not (4 <= e <= 40) and (4 <= d <= 40)):   #Se foi visto preto apenas no sensor direito, girar pra esquerda até ver preto nos dois 
+        while not ( (4<= e <= 40) and (4 <= d <= 40)):
+            e = coloresquerdo.value()
+            d = colordireito.value()
+            tank_drive.on(SpeedPercent(-25), SpeedPercent(45))
+
+    tank_drive.on_for_seconds(SpeedPercent(0),SpeedPercent(0),0.01)
     tank_drive.on(SpeedPercent(0), SpeedPercent(0))      
     tank_drive.on_for_seconds(SpeedPercent(25), SpeedPercent(25),0.6)
     tank_drive.on(SpeedPercent(0), SpeedPercent(0))     
@@ -208,6 +245,7 @@ def pegou_a_bolinha(): #Função feita para retornar a bolinha para a área de r
     tank_drive.on(SpeedPercent(-25), SpeedPercent(-25))
     tank_drive.on_for_seconds(SpeedPercent(-25), SpeedPercent(-25),1.8)
     tank_drive.on_for_seconds(SpeedPercent(25), SpeedPercent(-25),0.8)
+    tank_drive.on(SpeedPercent(0), SpeedPercent(0))
 
 def on_for_seconds(v1, v2, t, cond = True, random2 = False):  #Função implementada para fazer um on_for_seconds em que há a checagem durante o movimento. A condição 'cond' define se é necessária a checagem de paredes, que não é necessária na manobra do robô imediatamente depois de ver uma parede.
     aux = 0
@@ -217,7 +255,7 @@ def on_for_seconds(v1, v2, t, cond = True, random2 = False):  #Função implemen
     
 
     if random2:
-        if random.randint(0, 1):
+        if random.randint(0, 1):      # 50% de chance dele inverter o movimento, ou seja de girar pra esquerda ou para a direita
             aux = v1
             v1 = v2
             v2 = aux        
@@ -243,34 +281,35 @@ def on_for_seconds(v1, v2, t, cond = True, random2 = False):  #Função implemen
         #AQUI ELE ESTÁ IDENTIFICANDO QUALQUER BOLA PARA PEGAR, IMPLEMENTAR A LÓGICA DE ESCOLHER
         #PRIMEIRO AS BOLINHAS BRANCAS
         if sobreviventesResgatados<2:
-            if 900<c<1800:
-                tank_drive.on_for_seconds(SpeedPercent(0),SpeedPercent(0),0.01)
+            if 700<c<1800:
                 tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+                tank_drive.on_for_seconds(SpeedPercent(0),SpeedPercent(0),0.01)
                 pegar_objeto_posicao()
                 c = sensor_cor.value()
-                if c < 900:
+                if c < 700:
                     pegou_a_bolinha()
                     sobreviventesResgatados+=1
                 else: 
-                    while 900 < c < 1800:
+                    while 700 < c < 1800:
                         pegar_objeto_posicao()
                         c = sensor_cor.value()
                         tentativaPegarBolinha += 1
-                        if c < 900:
+                        if c < 700:
                             pegou_a_bolinha()
                             sobreviventesResgatados+=1
                             tentativaPegarBolinha += 1
                             break
                         if tentativaPegarBolinha >= 2:
                             tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+                            tank_drive.on_for_seconds(SpeedPercent(0),SpeedPercent(0),0.01)
                             tank_drive.on_for_seconds(SpeedPercent(-25),SpeedPercent(-25), 1.6)
                             c = sensor_cor.value()
                             break
 
         elif sobreviventesResgatados==2:
              if 230<c<350:
-                tank_drive.on_for_seconds(SpeedPercent(0),SpeedPercent(0),0.01)
                 tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+                tank_drive.on_for_seconds(SpeedPercent(0),SpeedPercent(0),0.01)
                 pegar_objeto_posicao()
                 c = sensor_cor.value()
                 if c < 230:
@@ -287,12 +326,15 @@ def on_for_seconds(v1, v2, t, cond = True, random2 = False):  #Função implemen
                             break
                         if tentativaPegarBolinha >= 2:
                             tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+                            tank_drive.on_for_seconds(SpeedPercent(0),SpeedPercent(0),0.01)
                             tank_drive.on_for_seconds(SpeedPercent(-25),SpeedPercent(-25), 1.6)
                             c = sensor_cor.value()
                             break
 
         elif sobreviventesResgatados>2:
             print("sai da salaaaaaaaaaaaaaaaaaaaaaa", file=sys.stderr)
+            while True:
+                spkr.tone([(523.5, 200),(587.33, 400),(698.46, 200),(587.33, 200),(659.25, 400),(783.99, 200),(659.25, 200),(698.25, 400,800),])
         # elif 230 < c < 350 or 1050 < c < 2000 :                                                  #17:40          30 No AMbiente      35   Branco  
         #     tank_drive.on(SpeedPercent(0), SpeedPercent(0))
             # pegar_objeto_posicao()
@@ -314,17 +356,17 @@ def on_for_seconds(v1, v2, t, cond = True, random2 = False):  #Função implemen
             time.sleep(0.2)
             tank_drive.on(SpeedPercent(0), SpeedPercent(0))
             time.sleep(0.2)
+            #if c > 400:
+                #pegar_objeto_posicao()
+                #pegou_a_bolinha()
             on_for_seconds(-25,-25,0.6, False)
-            on_for_seconds(25,-5,3, False, True)
+            on_for_seconds(25,-5,2.3, False, True)
             break
 
-        elif d <= 8 and e <=4:
-            tank_drive.on(SpeedPercent(0), SpeedPercent(0))
-            tank_drive.on_for_seconds(SpeedPercent(-25),SpeedPercent(-25), 1.9)
-            on_for_seconds(25,-5,3,True, True)
-        elif  d <50 or e <30:                                 #Se ele viu Preto
-            tank_drive.on(SpeedPercent(0), SpeedPercent(0))
-            tank_drive.on_for_seconds(SpeedPercent(-25),SpeedPercent(-25), 1.6)
+        elif d <= 30 or e <= 30:             # Se ele viu preto, verde ou vermelho
+            tank_drive.on_for_seconds(SpeedPercent(0), SpeedPercent(0),0.01)
+            #spkr.tone([(200, 350, 30)])
+            tank_drive.on_for_seconds(SpeedPercent(-25),SpeedPercent(-25), 2.4)
             on_for_seconds(25,-5,3,True, True)
         #elif variancia < 2:
             #print(variancia, file=sys.stderr)
@@ -448,8 +490,8 @@ a = time.time() + 30000
 while a > time.time():
 
     # Variaveis -----------------------------------------------------------------
-    e = coloresquerdo.value()  #Valores Lidos :Branco 73-77, Preto 6-8, Verde 4, Verm 42, Azul 5         
-    d = colordireito.value()   #Valores Lidos :Branco 100, Preto 11, Verde 6-7,  Verm 72, Azul 8
+    e = coloresquerdo.value()  #Valores Lidos :Branco 73-77, Preto 6-8, Verde 4, Verm 55-57, Azul 5         
+    d = colordireito.value()   #Valores Lidos :Branco 100, Preto 11, Verde 6-7,  Verm 73-75, Azul 8
     x+=1
     #print("Direita Verde3", d, "Esquerda Verde3", e, file=sys.stderr)
     
@@ -470,10 +512,17 @@ while a > time.time():
     media_esquerda2 = sum(lista_ultimasLeiturasEsquerda[-num_amostras_seguemaior:])/num_amostras_seguemaior
     #----------------------------------------------------------------------------
     #print("Cima", e, "Baixo", d, file=sys.stderr)
-    if (e == 0 and d == 0):
+    if (e == 0 and d == 0)or False:
         tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+        c = sensor_cor.value()
+        distancia = dist.value()
+        time.sleep(1)
+        print("Cima", e, "Baixo", d, file=sys.stderr)
 
-    elif True:
+    elif viu_vermelho():
+        tank_drive.on_for_seconds(SpeedPercent(0), SpeedPercent(0),0.01)
+        spkr.tone([(900, 350, 30)])
+        tank_drive.on_for_seconds(SpeedPercent(20), SpeedPercent(20),2.5)
         Sala_Resgate()
         c = sensor_cor.value()
         distancia = dist.value()
@@ -483,9 +532,9 @@ while a > time.time():
     elif viu_verde2() :
         pass
 
-    # elif distancia <130:    #Se foi visto um obstáculo
-    #     tank_drive.on(SpeedPercent(0), SpeedPercent(0))
-    #     Obstaculo()
+    elif distancia <0.130:    #Se foi visto um obstáculo
+        tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+        Obstaculo()
 
     else:
         Segue_linha()
