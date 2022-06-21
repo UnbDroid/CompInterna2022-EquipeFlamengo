@@ -152,7 +152,7 @@ def viu_preto():    #Função para identificar se foi visto preto na sala de res
 
     listapreto_eq = [5,6,7,8,9,10,11,12,13,14,15,16,17]
     listapreto_dr = [10,11,12,13,14,15,16,17,18,19,20]
-    num_identifica_preto = 3
+    num_identifica_preto = 2
     contador_dr = 0
     contador_eq = 0
     for i in lista_ultimasLeiturasDireita[-num_identifica_preto:]:
@@ -261,7 +261,7 @@ def pegou_a_bolinha(): #Função feita para retornar a bolinha para a área de r
         aux_vermelho = viu_vermelho()
         aux_preto = viu_preto()
 
-        tank_drive.on(SpeedPercent(30), SpeedPercent(30))
+        tank_drive.on(SpeedPercent(20), SpeedPercent(20))
         if distancia < 140:
             tempo_total = time.time() 
             #tank_drive.on_for_seconds(SpeedPercent(-25), SpeedPercent(-25),0.65)
