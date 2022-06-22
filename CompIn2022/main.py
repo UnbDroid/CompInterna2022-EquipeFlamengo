@@ -261,7 +261,7 @@ def pegou_a_bolinha(): #Função feita para retornar a bolinha para a área de r
         aux_vermelho = viu_vermelho()
         aux_preto = viu_preto()
 
-        tank_drive.on(SpeedPercent(20), SpeedPercent(20))
+        tank_drive.on(SpeedPercent(350), SpeedPercent(30))
         if distancia < 140:
             tempo_total = time.time() 
             #tank_drive.on_for_seconds(SpeedPercent(-25), SpeedPercent(-25),0.65)
@@ -276,7 +276,7 @@ def pegou_a_bolinha(): #Função feita para retornar a bolinha para a área de r
             spkr.tone([(200, 350, 30)])
             print(aux_verde, aux_vermelho, file=sys.stderr)
             tank_drive.on_for_seconds(SpeedPercent(-25),SpeedPercent(-25), 2.5)
-            tank_drive.on_for_seconds(SpeedPercent(25),SpeedPercent(-25), 2.9)
+            tank_drive.on_for_seconds(SpeedPercent(25),SpeedPercent(-25), 0.9)
         elif variancia < 2:
             tempo_total = time.time()
             print(variancia, file=sys.stderr)
@@ -322,14 +322,13 @@ def pegou_a_bolinha(): #Função feita para retornar a bolinha para a área de r
     time.sleep(0.3)
     MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraFechada) # Fechar a Garra 
     MotorBraço.on_for_seconds(SpeedPercent(-20), tempo_braço/3) # Subindo o Braço
-    tank_drive.on(SpeedPercent(-25), SpeedPercent(-25))
     tank_drive.on_for_seconds(SpeedPercent(-25), SpeedPercent(-25),1.8)
     tank_drive.on_for_seconds(SpeedPercent(25), SpeedPercent(-25),0.8)
     tank_drive.on_for_seconds(SpeedPercent(25), SpeedPercent(25),0.8)
-    tank_drive.on(SpeedPercent(0), SpeedPercent(0))
 
 def on_for_seconds(v1, v2, t, cond = True, random2 = False):  #Função implementada para fazer um on_for_seconds em que há a checagem durante o movimento. A condição 'cond' define se é necessária a checagem de paredes, que não é necessária na manobra do robô imediatamente depois de ver uma parede.
     aux = 0
+    #cond = True
     
     tentativaPegarBolinha = 0
     global sobreviventesResgatados
@@ -380,6 +379,7 @@ def on_for_seconds(v1, v2, t, cond = True, random2 = False):  #Função implemen
                     if c < 700:
                         pegou_a_bolinha()
                         sobreviventesResgatados+=1
+                        return
                     else: 
                         while 700 < c < 2700:
                             pegar_objeto_posicao()
@@ -389,7 +389,7 @@ def on_for_seconds(v1, v2, t, cond = True, random2 = False):  #Função implemen
                                 pegou_a_bolinha()
                                 sobreviventesResgatados+=1
                                 tentativaPegarBolinha += 1
-                                break
+                                return
                             if tentativaPegarBolinha >= 2:
                                 tank_drive.on(SpeedPercent(0), SpeedPercent(0))
                                 tank_drive.on_for_seconds(SpeedPercent(0),SpeedPercent(0),0.01)
@@ -411,6 +411,7 @@ def on_for_seconds(v1, v2, t, cond = True, random2 = False):  #Função implemen
                     if c < 230:
                         pegou_a_bolinha()
                         sobreviventesResgatados+=1
+                        return
                     else: 
                         while 230 < c < 350:
                             pegar_objeto_posicao()
@@ -419,7 +420,7 @@ def on_for_seconds(v1, v2, t, cond = True, random2 = False):  #Função implemen
                             if c < 230:
                                 pegou_a_bolinha()
                                 sobreviventesResgatados+=1
-                                break
+                                return
                             if tentativaPegarBolinha >= 2:
                                 tank_drive.on(SpeedPercent(0), SpeedPercent(0))
                                 tank_drive.on_for_seconds(SpeedPercent(0),SpeedPercent(0),0.01)
@@ -495,7 +496,7 @@ def Sala_Resgate():
         on_for_seconds(11,-11, 0.9)
         on_for_seconds(-11,11,1.8)
         on_for_seconds(11,-11,0.9)
-        if time.time()-25 >= tempo_total:
+        if time.time()-32 >= tempo_total:
             spkr.tone([(523.5, 200),(587.33, 400)])
             tank_drive.on_for_seconds(SpeedPercent(-25),SpeedPercent(-25), 2.4)
             on_for_seconds(25,-5,3,True, True)
