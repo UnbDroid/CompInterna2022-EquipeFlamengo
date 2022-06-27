@@ -272,7 +272,6 @@ def pegou_a_bolinha(): #Função feita para retornar a bolinha para a área de r
         elif aux_verde[0] or aux_vermelho[0]:
             tempo_total = time.time()
             tank_drive.on_for_seconds(SpeedPercent(0), SpeedPercent(0),0.01)
-            tank_drive.on_for_seconds(SpeedPercent(0), SpeedPercent(0),2)
             spkr.tone([(200, 350, 30)])
             print(aux_verde, aux_vermelho, file=sys.stderr)
             tank_drive.on_for_seconds(SpeedPercent(-25),SpeedPercent(-25), 2.5)
@@ -367,26 +366,26 @@ def on_for_seconds(v1, v2, t, cond = True, random2 = False):  #Função implemen
 
         #AQUI ELE ESTÁ IDENTIFICANDO QUALQUER BOLA PARA PEGAR, IMPLEMENTAR A LÓGICA DE ESCOLHER
         #PRIMEIRO AS BOLINHAS BRANCAS
-        if sobreviventesResgatados<2:
-            if 550<c<2700:
+        if sobreviventesResgatados<3:
+            if 853.4<c<2700:
                 tempo_total = time.time()
                 tank_drive.on_for_seconds(SpeedPercent(0),SpeedPercent(0),0.01)
                 tank_drive.on(SpeedPercent(0),SpeedPercent(0))
                 time.sleep(2)
                 c = sensor_cor.value()
-                if 550<c<2700:
+                if 853.4<c<2700:
                     pegar_objeto_posicao()
                     c = sensor_cor.value()
-                    if c < 550:
+                    if c < 853.4:
                         pegou_a_bolinha()
                         sobreviventesResgatados+=1
                         return
                     else: 
-                        while 550 < c < 2700:
+                        while 853.4 < c < 2700:
                             pegar_objeto_posicao()
                             c = sensor_cor.value()
                             tentativaPegarBolinha += 1
-                            if c < 550:
+                            if c < 853.4:
                                 pegou_a_bolinha()
                                 sobreviventesResgatados+=1
                                 tentativaPegarBolinha += 1
@@ -397,8 +396,66 @@ def on_for_seconds(v1, v2, t, cond = True, random2 = False):  #Função implemen
                                 tank_drive.on_for_seconds(SpeedPercent(-25),SpeedPercent(-25), 1.6)
                                 c = sensor_cor.value()
                                 break
+                else:
+                    tempo_total2 = time.time() + 2.25
+                    while time.time() < tempo_total2:
+                        c = sensor_cor.value()
+                        tank_drive.on(SpeedPercent(5), SpeedPercent(-5)) 
+                        if 853.4<c<2700:
+                            tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+                            pegar_objeto_posicao()
+                            c = sensor_cor.value()
+                            if c < 853.4:
+                                pegou_a_bolinha()
+                                sobreviventesResgatados+=1
+                                return
+                        else: 
+                            while 853.4 < c < 2700:
+                                pegar_objeto_posicao()
+                                c = sensor_cor.value()
+                                tentativaPegarBolinha += 1
+                                if c < 853.4:
+                                    pegou_a_bolinha()
+                                    sobreviventesResgatados+=1
+                                    tentativaPegarBolinha += 1
+                                    return
+                                if tentativaPegarBolinha >= 1:
+                                    tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+                                    tank_drive.on_for_seconds(SpeedPercent(0),SpeedPercent(0),0.01)
+                                    tank_drive.on_for_seconds(SpeedPercent(-25),SpeedPercent(-25), 1.6)
+                                    c = sensor_cor.value()
+                                    break
+                    tempo_total2 = time.time() + 4.5
+                    while time.time() < tempo_total2:
+                        c = sensor_cor.value()
+                        tank_drive.on(SpeedPercent(-5), SpeedPercent(5)) 
+                        if 853.4<c<2700:
+                            tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+                            pegar_objeto_posicao()
+                            c = sensor_cor.value()
+                            if c < 853.4:
+                                pegou_a_bolinha()
+                                sobreviventesResgatados+=1
+                                return
+                        else: 
+                            while 853.4 < c < 2700:
+                                pegar_objeto_posicao()
+                                c = sensor_cor.value()
+                                tentativaPegarBolinha += 1
+                                if c < 853.4:
+                                    pegou_a_bolinha()
+                                    sobreviventesResgatados+=1
+                                    tentativaPegarBolinha += 1
+                                    return
+                                if tentativaPegarBolinha >= 1:
+                                    tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+                                    tank_drive.on_for_seconds(SpeedPercent(0),SpeedPercent(0),0.01)
+                                    tank_drive.on_for_seconds(SpeedPercent(-25),SpeedPercent(-25), 1.6)
+                                    c = sensor_cor.value()
+                                    break
 
-        elif sobreviventesResgatados==2:
+
+        if sobreviventesResgatados<3:
              if 230<c<350:
                 tempo_total = time.time()
                 tank_drive.on(SpeedPercent(0), SpeedPercent(0))
@@ -428,6 +485,63 @@ def on_for_seconds(v1, v2, t, cond = True, random2 = False):  #Função implemen
                                 tank_drive.on_for_seconds(SpeedPercent(-25),SpeedPercent(-25), 1.6)
                                 c = sensor_cor.value()
                                 break
+                else:
+                    tempo_total2 = time.time() + 2.25
+                    while time.time() < tempo_total2:
+                        c = sensor_cor.value()
+                        tank_drive.on(SpeedPercent(5), SpeedPercent(-5)) 
+                        if 230<c<350:
+                            tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+                            pegar_objeto_posicao()
+                            c = sensor_cor.value()
+                            if c < 230:
+                                pegou_a_bolinha()
+                                sobreviventesResgatados+=1
+                                return
+                        else: 
+                            while 230 < c < 350:
+                                pegar_objeto_posicao()
+                                c = sensor_cor.value()
+                                tentativaPegarBolinha += 1
+                                if c < 230:
+                                    pegou_a_bolinha()
+                                    sobreviventesResgatados+=1
+                                    tentativaPegarBolinha += 1
+                                    return
+                                if tentativaPegarBolinha >= 1:
+                                    tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+                                    tank_drive.on_for_seconds(SpeedPercent(0),SpeedPercent(0),0.01)
+                                    tank_drive.on_for_seconds(SpeedPercent(-25),SpeedPercent(-25), 1.6)
+                                    c = sensor_cor.value()
+                                    break
+                    tempo_total2 = time.time() + 4.5
+                    while time.time() < tempo_total2:
+                        c = sensor_cor.value()
+                        tank_drive.on(SpeedPercent(-5), SpeedPercent(5)) 
+                        if 230<c<350:
+                            tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+                            pegar_objeto_posicao()
+                            c = sensor_cor.value()
+                            if c < 230:
+                                pegou_a_bolinha()
+                                sobreviventesResgatados+=1
+                                return
+                        else: 
+                            while 230 < c < 350:
+                                pegar_objeto_posicao()
+                                c = sensor_cor.value()
+                                tentativaPegarBolinha += 1
+                                if c < 230:
+                                    pegou_a_bolinha()
+                                    sobreviventesResgatados+=1
+                                    tentativaPegarBolinha += 1
+                                    return
+                                if tentativaPegarBolinha >= 1:
+                                    tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+                                    tank_drive.on_for_seconds(SpeedPercent(0),SpeedPercent(0),0.01)
+                                    tank_drive.on_for_seconds(SpeedPercent(-25),SpeedPercent(-25), 1.6)
+                                    c = sensor_cor.value()
+                                    break
 
         elif sobreviventesResgatados>2:
             print("sai da salaaaaaaaaaaaaaaaaaaaaaa", file=sys.stderr)
@@ -465,8 +579,8 @@ def on_for_seconds(v1, v2, t, cond = True, random2 = False):  #Função implemen
             #if c > 400:
                 #pegar_objeto_posicao()
                 #pegou_a_bolinha()
-            on_for_seconds(-25,-25,0.6, False)
-            on_for_seconds(25,-5,2, False, True)
+            on_for_seconds(-25,-25,2.1, False)
+            on_for_seconds(25,-25,0.95, False, True)
             break
 
         elif aux_preto[0] or aux_verde[0] or aux_vermelho[0]:
@@ -484,8 +598,8 @@ def Sala_Resgate():
     global tempo_total
 
     tempo_total = time.time()
-    tempo_virada = 1.
-    velocidade_girada = 18
+    tempo_virada = 1
+    velocidade_girada = 16
     while True:
         c = sensor_cor.value()
         distancia = dist.value()
@@ -540,12 +654,12 @@ def Sala_Resgate_2():                    #Implementação da sala de resgate com
 
 # Módulos e suas portas -------------------------------------------------
 MotorGarra = Motor(OUTPUT_D)
-dist = UltrasonicSensor(INPUT_1)
+dist = UltrasonicSensor(INPUT_2)
 coloresquerdo = ColorSensor(INPUT_3)
 colordireito = ColorSensor(INPUT_4)
 MotorBraço = Motor(OUTPUT_A)
 tank_drive = MoveTank(OUTPUT_C, OUTPUT_B)  #C - Direita    B - Esquerda
-sensor_cor = Sensor(INPUT_2)
+sensor_cor = Sensor(INPUT_1)
 
 
 # Parâmetros ------------------------------------------------------------
