@@ -27,7 +27,7 @@ def leituras():
     global diferenca_medias
 
     dist_up = int(Ultrassom_cima.distance_centimeters)
-    time.sleep(0.1)
+    time.sleep(0.05)
     dist_down = int(Ultrassom_baixo.distance_centimeters)
     cor_left = coloresquerdo.value()
     cor_right = colordireito.value()
@@ -55,6 +55,7 @@ def leituras():
 def pegar_objeto_posicao():
     global tentativas
     tentando = True
+    print("Tentando pegar a bolinha",file=sys.stderr)
     while tentando:
         MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraAberta) # Abrir a Garra 
         time.sleep (0.5)
@@ -67,9 +68,11 @@ def pegar_objeto_posicao():
         leituras()
         if dist_down > 5:
             tentando = False
-            tentativas = 0
+            print("Conseguiu! ;)",file=sys.stderr)
+            pegou_bolinha()
         elif tentativas > 4:
             tentando = False
+            print("Nao conseguiu! :(",file=sys.stderr)
         else:
             tentativas += 1
             pegar_objeto_posicao()
@@ -120,22 +123,25 @@ def procurando(vl, vr, t, cond = True, rand = False):
             diferenca_da_bolinha = 30
         elif media_down < 45:
             diferenca_da_bolinha = 5
-        if diferenca_medias > diferenca_da_bolinha:
-            spkr.tone([(450, 350, 30)])
+        if (diferenca_medias > diferenca_da_bolinha) or dist_down < 7:
             tank_drive.on(SpeedPercent(0), SpeedPercent(0))
-            tempo_de_leitura += 2.5
+            spkr.tone([(450, 350, 30)])
+            print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",file=sys.stderr)
             time.sleep(0.5)
-            for i in range(20):
-                leituras()
-            if diferenca_medias > diferenca_da_bolinha:
-                while dist_down > 5:
-                    tank_drive.on(SpeedPercent(25), SpeedPercent(25))
-                    leituras()
-                tank_drive.on(SpeedPercent(0), SpeedPercent(0))
-                pegar_objeto_posicao()
+            print("Verificando! - inicio",file=sys.stderr)
+            viu_mesmo = verificando(vl, vr, diferenca_da_bolinha)
+            print("Verificando! - fim",file=sys.stderr)
+            if viu_mesmo:
+                spkr.tone([(30, 350, 450)])
+            #     print("Aproximando",file=sys.stderr)
+            #     while dist_down > 5:
+            #         tank_drive.on(SpeedPercent(25), SpeedPercent(25))
+            #         leituras()
+            #     tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+            #     pegar_objeto_posicao()
         elif dist_up < 11:
             tank_drive.on(SpeedPercent(0), SpeedPercent(0))
-            for i in range(20):
+            for i in range(5):
                 leituras()
             if media_up > 11:
                 break
@@ -148,9 +154,83 @@ def procurando(vl, vr, t, cond = True, rand = False):
             tank_drive.on_for_seconds(SpeedPercent(-25), SpeedPercent(-25), 0.8)
             tank_drive.on_for_seconds(SpeedPercent(-25), SpeedPercent(25), 0.8)
         
+def verificando(vl, vr, diferenca_da_bolinha):
+    if vl > vr:
+        x = -5
+        y = 5
+    else:
+        x = 5
+        y = -5
+    tempo_verificando = time.time() + 2.5
+    while tempo_verificando > time.time():
+        leituras()
+        tank_drive.on(SpeedPercent(x), SpeedPercent(y))
+        if (diferenca_valores > diferenca_da_bolinha) or dist_down < 7:
+            tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+            print("Achei!",file=sys.stderr)
+            return True
+    tempo_verificando = time.time() + 5
+    while tempo_verificando > time.time():
+        leituras()
+        tank_drive.on(SpeedPercent(y), SpeedPercent(x))
+        if (diferenca_valores > diferenca_da_bolinha) or dist_down < 7:
+            tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+            print("Achei!",file=sys.stderr)
+            return True
+    tempo_verificando = time.time() + 2.5
+    while tempo_verificando > time.time():
+        leituras()
+        tank_drive.on(SpeedPercent(x), SpeedPercent(y))
+        if (diferenca_valores > diferenca_da_bolinha) or dist_down < 7:
+            tank_drive.on(SpeedPercent(0), SpeedPercent(0))
+            print("Achei!",file=sys.stderr)
+            return True
+    print("Nao achei!",file=sys.stderr)
+    return False
 
-        
+def pegou_bolinha():
+    viu_verde = checkando_cor("verde")
+    viu_vermelho = checkando_cor("vermelho")
+    viu_preto = checkando_cor("preto")
+    while not viu_preto[0]:
+        leituras()
+        viu_verde = checkando_cor("verde")
+        viu_vermelho = checkando_cor("vermelho")
+        viu_preto = checkando_cor("preto")
+        if dist_up < 15:
+            tank_drive.on_for_seconds(SpeedPercent(0), SpeedPercent(0), 0.4)
+            tank_drive.on_for_seconds(SpeedPercent(-25), SpeedPercent(-25), 0.8)
+            tank_drive.on_for_seconds(SpeedPercent(-25), SpeedPercent(25), 0.8)
+        elif viu_verde[0] or (viu_vermelho == [True, "Ambos"]):
+            tank_drive.on_for_seconds(SpeedPercent(0), SpeedPercent(0), 0.4)
+            tank_drive.on_for_seconds(SpeedPercent(-25), SpeedPercent(-25), 0.8)
+            tank_drive.on_for_seconds(SpeedPercent(-25), SpeedPercent(25), 0.8)
+        tank_drive.on(SpeedPercent(30), SpeedPercent(30))
+    tank_drive.on_for_seconds(SpeedPercent(0), SpeedPercent(0), 0.4)
+    print("Viu preto",file=sys.stderr)
+    while not (viu_preto == [True, "Ambos"]):
+        leituras()
+        print("esquerda", cor_left, "direita", cor_right, file=sys.stderr)
+        viu_preto = checkando_cor("preto")
+        if (viu_preto[1] =="D"): 
+            tank_drive.on(SpeedPercent(30), SpeedPercent(-5))
+        elif (viu_preto[1] =="E"):
+            tank_drive.on(SpeedPercent(-5), SpeedPercent(30))
+    tank_drive.on_for_seconds(SpeedPercent(20), SpeedPercent(20), 0.7)
+    MotorBraço.on_to_position(SpeedPercent(20),PosicaoBraçoAbaixado) # Descer a Garra
+    time.sleep (0.5)
+    MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraAberta) # Abrir a Garra 
+    time.sleep (0.5)
+    MotorBraço.on_to_position(SpeedPercent(20),PosicaoBraçoLevantado) # Subir a Garra
+    time.sleep (2)
+    MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraFechada) # Fechar a Garra 
+    time.sleep (0.5)
 
+def Sala_de_reagate():
+    procurando(20, 20, 1)
+    procurando(-20, 20, 1)
+    procurando(20, -20, 2)
+    procurando(-20, 20, 1)
 
 #Funcoes//////////////////////////////////////////////////////////////////////////////////////////////////////#
 
@@ -186,7 +266,7 @@ diferenca_medias = 0
 
 #Programa_principal///////////////////////////////////////////////////////////////////////////////////////////#
 #Preparação ------------------------------------------------------------#
-tempo_subida, tempo_garra = 1, 0.25
+tempo_subida, tempo_garra = 1, 0.32
 PosicaoGarraFechada = MotorGarra.position
 MotorBraço.on_for_seconds(SpeedPercent(-20), tempo_subida) #Subindo o Braço até a posição abaixada
 PosicaoBraçoAbaixado = MotorBraço.position
@@ -198,11 +278,10 @@ MotorGarra.on_to_position(SpeedPercent(20),PosicaoGarraFechada) #Fechar a Garra
 #Preparação ------------------------------------------------------------#
 
 #Programa --------------------------------------------------------------#
-for i in range(50):
+for i in range(5):
     leituras()
 time.sleep(1)
 tempo = time.time() + 1
 while True:
-    leituras()
-    procurando(25,25,5)
+    Sala_de_reagate()
 #Programa_principal///////////////////////////////////////////////////////////////////////////////////////////#
