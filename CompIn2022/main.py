@@ -53,8 +53,8 @@ def Segue_linha():
 
 
 def viu_verde(cond = False):          #Quando a condição é True, ele só checa se viu verde ou não, mas não realiza a ação. Para checar se foi visto verde na Sala de Resgate
-    verde_dr = [6,7,8]
-    verde_eq = [3,4,5,6,9]
+    verde_dr = [6,7,8,9,10]
+    verde_eq = [3,4,5,6,7]
     num_identifica_verde = 5
     if cond:
         num_identifica_verde = 2
@@ -413,7 +413,7 @@ def on_for_seconds(v1, v2, t, cond = True, random2 = False):  #Função implemen
         lista_distancia_cima.append(distancia)
 
         variancia =statistics.variance(lista_distancia_baixo)
-        print(variancia, file=sys.stderr)
+        #print(variancia, file=sys.stderr)
         #print(sobreviventesResgatados, file=sys.stderr)
         
 
@@ -738,7 +738,7 @@ num_amostras_verde = 35              # Ao ver verde, quantas amostras são vista
 num_distancia = 40
 
 BrancoEq = 53                 # O que diferencia o Preto do Branco no Segue Linha para o sensor direito
-MediaPretoEq = 70.2 #69             # Valor que diferencia Preto do Branco na média dos valores utilizados após ver dois pretos pelo sensor esquerdo
+MediaPretoEq = 73.2 #70.2             # Valor que diferencia Preto do Branco na média dos valores utilizados após ver dois pretos pelo sensor esquerdo
 BrancoDr = 70                 # O que diferencia o Preto do Branco no Segue Linha para o sensor esquerdo
 MediaPretoDr = 90.5           # Valor que diferencia Preto do Branco na média dos valores utilizados após ver dois pretos pelo sensor direito
 
